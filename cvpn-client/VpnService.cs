@@ -10,7 +10,7 @@ namespace CustomVPN.Client
 {
     public class VpnService
     {
-        public static string ServerUrl { get; set; } = "http://localhost:3000";
+        public static string ServerUrl { get; set; } = "https://resolvia.cc.cd";
         public static string CurrentUsername { get; set; } = string.Empty;
         public static string DeviceId { get; private set; } = string.Empty;
         public static string DeviceName { get; set; } = Environment.MachineName;

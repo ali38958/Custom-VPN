@@ -11,6 +11,7 @@ node_modules/
 .next/
 bin/
 obj/
+dist/
 
 # Local databases and secrets
 *.db
