@@ -1,0 +1,84 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @default("BOwnerNo1")
+  passwordHash String   @map("password_hash")
+  email        String?  // For password reset via Google app password
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("password_reset_tokens")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique
+  passwordHash String    @map("password_hash")
+  assignedIp   String?   @unique @map("assigned_ip")
+  networkId    Int?      @map("network_id")
+  disabled     Boolean   @default(false)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  network      Network?  @relation(fields: [networkId], references: [id], onDelete: SetNull)
+  session      Session?
+
+  @@map("users")
+}
+
+model Network {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  subnet      String   @default("10.77.0.0/24")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  users       User[]
+
+  @@map("networks")
+}
+
+model Session {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @unique @map("user_id")
+  deviceId    String    @map("device_id")
+  deviceName  String?   @map("device_name")
+  deviceInfo  String?   @map("device_info")
+  publicKey   String?   @map("public_key")
+  clientIp    String?   @map("client_ip")
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at")
+  isOnline    Boolean   @default(true) @map("is_online")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  detail    String?
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}

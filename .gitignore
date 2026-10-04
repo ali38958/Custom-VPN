@@ -1,0 +1,23 @@
+# Agent and IDE configs
+.agents/
+.vscode/
+.vs/
+.idea/
+*.user
+*.suo
+
+# Dependencies & build outputs
+node_modules/
+.next/
+bin/
+obj/
+
+# Local databases and secrets
+*.db
+*.db-journal
+.env
+.env.local
+
+# Planning / scratch notes not needed in repo
+changeOplan.txt
+vpn-server-plan.md
