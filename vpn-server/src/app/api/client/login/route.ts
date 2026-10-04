@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth";
 import { getClientIp } from "@/lib/client-ip";
+import { addPeerToWireGuard } from "@/lib/wg-agent";
 
 export async function POST(req: NextRequest) {
   try {
@@ -78,6 +79,11 @@ export async function POST(req: NextRequest) {
           isOnline: true,
         },
       });
+    }
+
+    // Register peer in WireGuard interface if publicKey and assignedIp exist
+    if (publicKey && user.assignedIp) {
+      await addPeerToWireGuard(publicKey, user.assignedIp);
     }
 
     return NextResponse.json({

@@ -59,9 +59,14 @@ namespace CustomVPN.Client
             }
 
             BtnLogin.IsEnabled = false;
-            BtnLogin.Content = "Authenticating...";
 
-            var result = await VpnService.LoginAsync(username, password);
+            var result = await VpnService.LoginAsync(username, password, (status) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    BtnLogin.Content = status;
+                });
+            });
 
             BtnLogin.IsEnabled = true;
             BtnLogin.Content = "Establish VPN Session";
@@ -135,15 +140,34 @@ namespace CustomVPN.Client
             }
         }
 
-        private void ChkRouteAll_Checked(object sender, RoutedEventArgs e)
+        private async void ChkRouteAll_Checked(object sender, RoutedEventArgs e)
         {
             VpnService.RouteAllTraffic = true;
-            MessageBox.Show("Default gateway redirect requested. All network traffic will route through WireGuard tunnel.", "Route All Traffic", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (VpnService.IsConnected)
+            {
+                await WireGuardTunnelManager.ActivateTunnelAsync(
+                    VpnService.AssignedIp,
+                    VpnService.ServerPublicKey,
+                    VpnService.ServerEndpoint,
+                    true
+                );
+                MessageBox.Show("Virtual adapter reconfigured: Default gateway redirected. All internet traffic is now encrypted through the VPN server.", "Full Tunnel Active", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
-        private void ChkRouteAll_Unchecked(object sender, RoutedEventArgs e)
+        private async void ChkRouteAll_Unchecked(object sender, RoutedEventArgs e)
         {
             VpnService.RouteAllTraffic = false;
+            if (VpnService.IsConnected)
+            {
+                await WireGuardTunnelManager.ActivateTunnelAsync(
+                    VpnService.AssignedIp,
+                    VpnService.ServerPublicKey,
+                    VpnService.ServerEndpoint,
+                    false
+                );
+                MessageBox.Show("Virtual adapter reconfigured: Split-tunnel LAN mode active (only 10.77.0.0/24 routes through VPN). Native internet restored.", "Split Tunnel Active", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private async void BtnSendFile_Click(object sender, RoutedEventArgs e)

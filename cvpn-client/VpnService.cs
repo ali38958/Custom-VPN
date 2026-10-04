@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,6 +14,9 @@ namespace CustomVPN.Client
         public static string DeviceId { get; private set; } = string.Empty;
         public static string DeviceName { get; set; } = Environment.MachineName;
         public static string AssignedIp { get; set; } = string.Empty;
+        public static string ServerPublicKey { get; set; } = string.Empty;
+        public static string ServerEndpoint { get; set; } = "resolvia.cc.cd:51820";
+        public static string Subnet { get; set; } = "10.77.0.0/24";
         public static bool IsConnected { get; set; } = false;
         public static bool RouteAllTraffic { get; set; } = false;
 
@@ -42,10 +44,15 @@ namespace CustomVPN.Client
             }
         }
 
-        public static async Task<(bool Success, string Message, string? AssignedIp)> LoginAsync(string username, string password)
+        public static async Task<(bool Success, string Message, string? AssignedIp)> LoginAsync(
+            string username, 
+            string password, 
+            Action<string>? statusCallback = null)
         {
             try
             {
+                var (_, publicKey) = WireGuardTunnelManager.GetOrCreateKeys();
+
                 var payload = new
                 {
                     username,
@@ -53,9 +60,10 @@ namespace CustomVPN.Client
                     deviceId = DeviceId,
                     deviceName = DeviceName,
                     deviceInfo = $"{Environment.OSVersion}; {Environment.MachineName}",
-                    publicKey = "sample-generated-public-key"
+                    publicKey
                 };
 
+                statusCallback?.Invoke("Authenticating with Custom VPN server...");
                 var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
                 var res = await _httpClient.PostAsync($"{ServerUrl}/api/client/login", content);
                 var rawJson = await res.Content.ReadAsStringAsync();
@@ -68,7 +76,27 @@ namespace CustomVPN.Client
                     CurrentUsername = username;
                     var ip = root.GetProperty("user").GetProperty("assignedIp").GetString();
                     AssignedIp = ip ?? "10.77.0.2";
-                    return (true, "Authentication successful", AssignedIp);
+
+                    if (root.TryGetProperty("serverConfig", out var cfg))
+                    {
+                        if (cfg.TryGetProperty("serverPublicKey", out var spk)) ServerPublicKey = spk.GetString() ?? "";
+                        if (cfg.TryGetProperty("endpoint", out var ep)) ServerEndpoint = ep.GetString() ?? ServerEndpoint;
+                        if (cfg.TryGetProperty("subnet", out var sn)) Subnet = sn.GetString() ?? Subnet;
+                    }
+
+                    statusCallback?.Invoke("Activating virtual router network adapter...");
+
+                    // Activate the actual WireGuard kernel tunnel adapter on Windows
+                    bool tunnelOk = await WireGuardTunnelManager.ActivateTunnelAsync(
+                        AssignedIp,
+                        ServerPublicKey,
+                        ServerEndpoint,
+                        RouteAllTraffic,
+                        statusCallback
+                    );
+
+                    IsConnected = true;
+                    return (true, tunnelOk ? "Connected to virtual VPN router!" : "Authenticated, but WireGuard adapter creation failed.", AssignedIp);
                 }
                 else
                 {
@@ -86,6 +114,10 @@ namespace CustomVPN.Client
         {
             try
             {
+                // Deactivate the local virtual network adapter
+                await WireGuardTunnelManager.DeactivateTunnelAsync();
+                IsConnected = false;
+
                 var payload = new
                 {
                     username = CurrentUsername,

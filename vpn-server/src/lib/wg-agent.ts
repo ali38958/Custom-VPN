@@ -1,47 +1,46 @@
-import net from "net";
+import { exec } from "child_process";
+import { promisify } from "util";
 
-const WG_AGENT_SOCKET = process.env.WG_AGENT_SOCKET || "/run/wg-agent.sock";
+const execAsync = promisify(exec);
+
+const WG_INTERFACE = process.env.WG_INTERFACE || "wg0";
 
 /**
- * Sends a command to the wg-agent daemon listening on the local unix socket.
- * On Windows/development environments where the socket does not exist,
- * it safely logs and resolves without crashing.
+ * Adds or updates a peer in the live WireGuard interface immediately.
  */
-export async function sendWgAgentCommand(command: "sync" | "status"): Promise<string> {
-  // If on non-linux or socket path does not start with '/', simulate success in development
-  if (process.platform === "win32" || !WG_AGENT_SOCKET.startsWith("/")) {
-    console.log(`[wg-agent (mock)] Command "${command}" simulated on ${process.platform}`);
-    return JSON.stringify({ status: "ok", simulated: true });
+export async function addPeerToWireGuard(publicKey: string, assignedIp: string): Promise<boolean> {
+  if (process.platform !== "linux") {
+    console.log(`[wg (mock)] Added peer ${publicKey} with IP ${assignedIp}/32 on interface ${WG_INTERFACE}`);
+    return true;
   }
 
-  return new Promise((resolve) => {
-    const client = net.createConnection({ path: WG_AGENT_SOCKET }, () => {
-      client.write(`${command}\n`);
-    });
-
-    let data = "";
-    client.on("data", (chunk) => {
-      data += chunk.toString();
-    });
-
-    client.on("end", () => {
-      resolve(data.trim());
-    });
-
-    client.on("error", (err) => {
-      console.warn(`[wg-agent] Could not connect to socket ${WG_AGENT_SOCKET}:`, err.message);
-      // Resolve with fallback so requests don't fail completely if agent is starting up
-      resolve(JSON.stringify({ status: "error", error: err.message }));
-    });
-
-    // 3 second timeout
-    client.setTimeout(3000, () => {
-      client.destroy();
-      resolve(JSON.stringify({ status: "timeout" }));
-    });
-  });
+  try {
+    const cmd = `sudo wg set ${WG_INTERFACE} peer "${publicKey}" allowed-ips "${assignedIp}/32"`;
+    await execAsync(cmd);
+    console.log(`[wg] Successfully registered peer ${publicKey} -> ${assignedIp}/32 on ${WG_INTERFACE}`);
+    return true;
+  } catch (err) {
+    console.error(`[wg] Failed to add peer to WireGuard:`, err);
+    return false;
+  }
 }
 
-export async function triggerWgSync() {
-  return sendWgAgentCommand("sync");
+/**
+ * Removes a peer from the live WireGuard interface immediately.
+ */
+export async function removePeerFromWireGuard(publicKey: string): Promise<boolean> {
+  if (process.platform !== "linux") {
+    console.log(`[wg (mock)] Removed peer ${publicKey} from interface ${WG_INTERFACE}`);
+    return true;
+  }
+
+  try {
+    const cmd = `sudo wg set ${WG_INTERFACE} peer "${publicKey}" remove`;
+    await execAsync(cmd);
+    console.log(`[wg] Successfully removed peer ${publicKey} from ${WG_INTERFACE}`);
+    return true;
+  } catch (err) {
+    console.error(`[wg] Failed to remove peer from WireGuard:`, err);
+    return false;
+  }
 }
