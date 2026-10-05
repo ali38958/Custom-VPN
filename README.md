@@ -1,82 +1,122 @@
 <div align="center">
-
-  # 🛡️ CustomVPN
-
-  **A modern, secure, and automated OpenVPN-based virtual private network client and server stack.**
-
-  [![Client](https://img.shields.io/badge/Client-WPF%20%7C%20C%23-5C2D91?style=flat-square&logo=csharp&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/csharp/)
-  [![Server](https://img.shields.io/badge/Server-Next.js%20%7C%20React-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
-  [![Core](https://img.shields.io/badge/Protocol-OpenVPN-EA7E20?style=flat-square&logo=openvpn&logoColor=white)](https://openvpn.net/)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](#-license)
-  [![Author: Muhammad Ali](https://img.shields.io/badge/Author-Muhammad%20Ali-blue?style=flat-square)](https://github.com/ali38958)
-
-  [✨ Features](#-why-customvpn) • [🏗️ Architecture](#-system-architecture) • [⚡ Quick Start](#-getting-started) • [📄 License](#-license)
-
+  <img src="assets/customvpn_logo.png" alt="Custom VPN Logo" width="200" />
+  <h1>🛡️ Custom VPN</h1>
+  <p><strong>A secure, self-hosted peer-to-peer mesh VPN built on top of OpenVPN.</strong></p>
 </div>
 
----
+<br/>
 
-## 📖 The Problem It Solves
-
-Traditional VPN clients often require manual installation of adapters, complex certificate configurations, and tedious command-line setups. On the administrative side, managing peer access and distributing configuration profiles securely can be a logistical nightmare. 
-
-**CustomVPN** solves this by bridging a high-performance OpenVPN core with a sleek, one-click Windows UI (WPF) and a fully automated Next.js API server. It handles everything from silent OpenVPN binary installation and background Windows Service execution to automated profile provisioning—delivering a seamless, consumer-grade VPN experience.
+*High-performance virtual networking system featuring an intuitive WPF desktop client, a centralized relay server, and an intelligent administration portal.*
 
 ---
 
-## ✨ Why CustomVPN?
+## ✨ Why Custom VPN?
 
-- 🛡️ **Automated OpenVPN Provisioning**: The Windows client autonomously detects, downloads, and silently installs the official OpenVPN TAP adapters and binaries if they are missing.
-- ⚡ **One-Click Connectivity**: Forget `.ovpn` files. Users simply log in with their credentials, and the client securely fetches and applies their unique profile from the cloud.
-- 🔄 **Next.js API Server**: A modern API backend designed to manage user authentication, peer administration, and secure delivery of OpenVPN configurations.
-- 🔐 **Secure Execution**: The VPN tunnel runs directly in a hidden, elevated background process, ensuring the client UI remains snappy while handling encryption streams seamlessly.
-- 📉 **Split-Tunneling Ready**: Engineered to enforce routing rules effortlessly. Your ISP only sees AES-256-CBC encrypted traffic flowing to the server.
+- 🛡️ **Zero-Config Desktop Client**: A single, beautifully crafted WPF `.exe` client that handles tunnel configurations, secure API authentication, and administrative networking privileges automatically on Windows.
+- ⚡ **High-Speed OpenVPN Core**: Replaced complex experimental tunnels with the battle-tested, high-performance OpenVPN engine running on the `10.8.0.0/24` subnet.
+- 🔄 **Dynamic IP Allocation**: Integrated SQLite + Prisma ORM to maintain stateful client sessions and dynamic `ip-win32 dynamic` DHCP address allocation, eliminating manual Windows `netsh` conflicts.
+- 📈 **Web Administration Portal**: Real-time Node.js/Next.js dashboard to monitor connected peers, enforce access controls, and manage subnet routing without touching a terminal.
+- 🔐 **End-to-End Encryption**: AES-128-GCM data channel encryption with TLS 1.3 control channels and perfectly integrated Data Channel Offload (DCO) fallback mechanisms for legacy TAP adapters.
+- 🖼️ **Peer-to-Peer Operations**: Built-in functionality for encrypted chunked file transfers directly between mesh nodes inside the secure virtual LAN.
 
 ---
 
 ## 🏗️ System Architecture
 
-CustomVPN uses a split architecture, combining a lightweight C# client with a scalable Node/Next.js backend:
+Custom VPN leverages a robust client-server architecture with secure API gateways and dynamic tunnel orchestration:
 
 ```mermaid
 graph TD
-    Client[🖥️ Windows WPF Client] -->|Login & Fetch Config| API{🌐 Next.js API Server}
+    Client[🖥️ WPF Windows Client] -->|HTTPS / TLS 1.3| Gateway{🔐 Next.js API Gateway}
     
-    API -->|Authentication| DB[(Database / Store)]
-    API -->|Returns .ovpn Profile| Client
+    Gateway -->|Auth & Config| ServerAPI["vpn-server (Node.js/Next.js)<br/>(User Auth, Session Mgmt, Config Gen)"]
+    ServerAPI --> DB[(🗄️ SQLite Database)]
     
-    Client -->|Spawns Elevated Process| OVPN[⚙️ openvpn.exe]
+    Client -->|UDP 8443 / OpenVPN| OpenVPNServer[⚡ OpenVPN Daemon]
+    OpenVPNServer --> VirtualSubnet[🌐 10.8.0.0/24 Virtual LAN]
     
-    OVPN -->|AES-256-CBC Encrypted Tunnel| Server[🛡️ OpenVPN Server]
+    VirtualSubnet --> PeerA[Peer A]
+    VirtualSubnet --> PeerB[Peer B]
     
-    Server -->|Decrypt & Route| Internet[🌍 The Internet]
+    style Gateway fill:#1e1e1e,stroke:#00d2ff,stroke-width:2px,color:#fff
+    style ServerAPI fill:#1e1e1e,stroke:#9d00ff,stroke-width:2px,color:#fff
+    style OpenVPNServer fill:#1e1e1e,stroke:#00e676,stroke-width:2px,color:#fff
 ```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose & Rationale |
+| :--- | :--- | :--- |
+| **Desktop Client** | C# / WPF (.NET 10) | Native Windows GUI, Administrator elevation, and subprocess management. |
+| **VPN Engine** | OpenVPN 2.6 | Industry-standard, secure tunneling protocol with TAP-Windows6 support. |
+| **Server Backend** | Next.js / Node.js | Modern, high-performance React API framework. |
+| **Database ORM** | Prisma + SQLite | Type-safe database queries and state tracking. |
+| **Reverse Proxy** | Nginx | SSL termination and HTTP/2 gateway. |
+| **Process Manager**| PM2 | Daemonizing and managing the Next.js server instances. |
 
 ---
 
 ## ⚡ Getting Started
 
-### Prerequisites
-- **Client**: Windows 10 or 11, .NET 8.0 SDK or later.
-- **Server**: Node.js 18+, Ubuntu (for the OpenVPN host), and Next.js.
+### 🚀 Client Installation
 
-### Running the Client
-```bash
-cd cvpn-client
-dotnet build
-dotnet run
-```
-The client will automatically request elevation to manage network adapters and establish the tunnel.
+1. **Download the Client**
+   Run the generated `CustomVPN.exe` on your Windows 10/11 machine.
+2. **Authenticate**
+   Enter your provided credentials (e.g., `vpn_001`).
+3. **Connect**
+   The client will automatically download your secure `.ovpn` profile, disable conflicting DCO drivers if necessary, and establish a high-speed TAP connection to the mesh.
 
-### Running the Server
-```bash
-cd vpn-server
-npm install
-npm run dev
+### 💻 Server Deployment
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ali38958/Custom-VPN.git
+   cd Custom-VPN
+   ```
+
+2. **Run the Deployment Script**
+   Execute the automated bash script to configure OpenVPN, Nginx, and Next.js:
+   ```bash
+   cd vpn-server
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+
+3. **Start the API Server**
+   ```bash
+   npm run build
+   npx pm2 start npm --name 'vpn-server' -- start
+   ```
+
+---
+
+## 📁 Project Structure
+
+```text
+Custom-VPN/
+├── cvpn-client/            # C# WPF Windows Desktop Client
+│   ├── MainWindow.xaml     # Dynamic UI (Toggle switches, glow effects)
+│   ├── VpnService.cs       # API authentication and telemetry
+│   └── OpenVpnTunnelManager.cs # openvpn.exe orchestration and TAP adapter fix
+├── vpn-server/             # Next.js Administration and API Server
+│   ├── src/app/api/        # REST API for client auth and config delivery
+│   ├── prisma/             # SQLite database schemas and migrations
+│   └── scripts/            # Deployment and maintenance bash scripts
+└── README.md               # You are here
 ```
 
 ---
 
-## 📄 License
+## 👤 Author & Support
 
-This project is licensed under the MIT License.
+**Muhammad Ali**
+
+- **GitHub Profile**: [@ali38958](https://github.com/ali38958)
+- **Project Repository**: [ali38958/Custom-VPN](https://github.com/ali38958/Custom-VPN)
+
+<div align="center">
+  <sub>Built with ❤️. ⭐ Star the repository if you find it helpful!</sub>
+</div>

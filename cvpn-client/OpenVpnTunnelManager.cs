@@ -101,6 +101,7 @@ namespace CustomVPN.Client
                     ovpnConfig += "dhcp-option DNS 8.8.8.8\n";
                 }
 
+                ovpnConfig += "\ndisable-dco\nip-win32 dynamic\n";
                 await File.WriteAllTextAsync(ConfigPath, ovpnConfig);
             }
             catch (Exception ex)
