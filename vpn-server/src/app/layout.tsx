@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PrivateNet — Encrypted Virtual Network",
-  description: "Self-hosted WireGuard private network for seamless peer-to-peer connectivity and high-speed file transfer.",
+  description: "Self-hosted OpenVPN private network for seamless peer-to-peer connectivity and high-speed file transfer.",
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
-          <p>PrivateNet Server &bull; Node &bull; WireGuard Virtual Subnet 10.77.0.0/22 &bull; resolvia.cc.cd</p>
+          <p>PrivateNet Server &bull; Node &bull; OpenVPN Virtual Subnet 10.8.0.0/24 &bull; resolvia.cc.cd</p>
         </footer>
       </body>
     </html>

@@ -25,7 +25,7 @@ export default function DownloadsPage() {
               <span className="text-xs font-mono text-cyan-400">v1.0.0 &bull; Windows 10/11 x64</span>
             </div>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Avalonia GUI desktop application paired with an unprivileged helper service. Generates cryptographic keys locally via DPAPI and automatically handles WireGuard routing.
+              WPF desktop application paired with an unprivileged helper service. Generates configuration locally and automatically handles OpenVPN routing.
             </p>
 
             <div className="space-y-2 text-xs text-zinc-400 pt-2">
@@ -53,35 +53,35 @@ export default function DownloadsPage() {
           </a>
         </div>
 
-        {/* Prerequisites & Manual WireGuard */}
+        {/* Prerequisites & Manual OpenVPN */}
         <div className="p-8 rounded-3xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-xl flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-800/60 flex items-center justify-center text-emerald-400">
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-100">Prerequisite: WireGuard NT</h2>
+              <h2 className="text-xl font-bold text-zinc-100">Prerequisite: OpenVPN TAP</h2>
               <span className="text-xs font-mono text-emerald-400">Official Windows Driver</span>
             </div>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              PrivateNet utilizes the official in-kernel WireGuard driver for high throughput and optimal power efficiency. Please ensure the WireGuard package is installed.
+              PrivateNet utilizes the official OpenVPN TAP driver for high throughput and optimal compatibility. Please ensure the OpenVPN package is installed.
             </p>
 
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-400 space-y-1">
               <div className="font-semibold text-zinc-200">Alternative / Linux &amp; Mobile:</div>
               <p>
-                Linux, macOS, and iOS/Android users can run standard WireGuard configurations with custom client keys upon request.
+                Linux, macOS, and iOS/Android users can run standard OpenVPN configurations with custom client profiles upon request.
               </p>
             </div>
           </div>
 
           <a
-            href="https://www.wireguard.com/install/"
+            href="https://openvpn.net/community-downloads/"
             target="_blank"
             rel="noreferrer"
             className="w-full py-3.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
           >
-            <span>Official WireGuard Downloads</span>
+            <span>Official OpenVPN Downloads</span>
             <ExternalLink className="w-4 h-4" />
           </a>
         </div>

@@ -300,7 +300,7 @@ export default function AdminDashboardPage() {
               </div>
               <h3 className="font-bold text-zinc-200 text-base">{net.name}</h3>
               <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
-                {net.description || "Active WireGuard relay network segment"}
+                {net.description || "Active OpenVPN relay network segment"}
               </p>
             </div>
           ))}

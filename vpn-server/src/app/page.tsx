@@ -22,7 +22,7 @@ export default function Home() {
         </h1>
 
         <p className="mt-6 text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          High-performance WireGuard VPN connecting authorized devices over isolated virtual LANs. 
+          High-performance OpenVPN connecting authorized devices over isolated virtual LANs. 
           Enforcing strict 1:1 single-device locking, high-speed P2P file transfers, and root-level management.
         </p>
 
@@ -70,7 +70,7 @@ export default function Home() {
             </div>
             <h3 className="text-lg font-bold text-zinc-100">P2P File Transfer Protocol</h3>
             <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-              Direct peer-to-peer chunked streaming over encrypted WireGuard virtual IPs with full SHA-256 integrity verification.
+              Direct peer-to-peer chunked streaming over encrypted OpenVPN virtual IPs with full SHA-256 integrity verification.
             </p>
           </div>
         </div>

@@ -127,7 +127,7 @@ export default function LoginPage() {
           <div className="mt-6 pt-5 border-t border-zinc-800/80 text-center">
             <span className="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5 font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              WireGuard Kernel Guard Active
+              OpenVPN Guard Active
             </span>
           </div>
         </div>
