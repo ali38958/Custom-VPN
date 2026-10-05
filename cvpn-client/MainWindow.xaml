@@ -6,6 +6,42 @@
         Background="#090D16" Foreground="#F8FAFC" FontFamily="Segoe UI"
         ResizeMode="CanMinimize">
 
+    <Window.Resources>
+        <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border x:Name="BackgroundBorder" Width="34" Height="18" CornerRadius="9" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <Ellipse x:Name="Knob" Width="14" Height="14" Fill="#64748B" HorizontalAlignment="Left" Margin="1,0,0,0">
+                                    <Ellipse.RenderTransform>
+                                        <TranslateTransform X="0" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="BackgroundBorder" Property="Background" Value="#06B6D4"/>
+                                <Setter TargetName="BackgroundBorder" Property="BorderBrush" Value="#0891B2"/>
+                                <Setter TargetName="Knob" Property="Fill" Value="#FFFFFF"/>
+                                <Setter TargetName="Knob" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform X="16"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <!-- Background Gradient Glows -->
         <Border Background="#090D16">
@@ -101,7 +137,7 @@
                         <StackPanel>
                             <TextBlock Text="Route All Internet Traffic" FontWeight="SemiBold" FontSize="12" Foreground="#E2E8F0"/>
                             <TextBlock Text="Enforces full tunnel encryption" FontSize="10" Foreground="#64748B" Margin="0,2,0,10"/>
-                            <CheckBox x:Name="ChkRouteAll" IsChecked="False" Content="Redirect Default Gateway" Foreground="#94A3B8" FontSize="11" Checked="ChkRouteAll_Checked" Unchecked="ChkRouteAll_Unchecked"/>
+                            <CheckBox x:Name="ChkRouteAll" Style="{StaticResource ToggleSwitchStyle}" IsChecked="False" Content="Redirect Default Gateway" Checked="ChkRouteAll_Checked" Unchecked="ChkRouteAll_Unchecked"/>
                         </StackPanel>
                     </Border>
 
@@ -133,7 +169,7 @@
 
                     <StackPanel Grid.Row="0" Margin="0,0,0,14">
                         <TextBlock Text="Network Peers &amp; Devices" FontWeight="Bold" FontSize="15" Foreground="#F8FAFC"/>
-                        <TextBlock Text="Direct P2P file transfers accessible over WireGuard addresses" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                        <TextBlock Text="Direct P2P file transfers accessible over OpenVPN addresses" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
                     </StackPanel>
 
                     <ListBox x:Name="ListPeers" Grid.Row="1" Background="Transparent" BorderThickness="0" Foreground="#F8FAFC" HorizontalContentAlignment="Stretch">

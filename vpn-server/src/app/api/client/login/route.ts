@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
       user: { id: user.id, username: user.username, assignedIp: user.assignedIp },
       network: user.network,
       serverConfig: {
-        endpoint: "144.24.25.135:443",
-        subnet: user.network?.subnet || "10.8.0.0/24",
+        endpoint: "144.24.25.135:8443",
+        subnet: user.network?.subnet || "10.77.0.0/24",
       },
       openvpnConfigUrl: req.nextUrl.origin + "/api/client/config?username=" + username
     });

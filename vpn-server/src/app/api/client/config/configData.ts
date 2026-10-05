@@ -1,7 +1,7 @@
 export const ovpnConfig = `client
 dev tun
 proto tcp
-remote 144.24.25.135 443
+remote 144.24.25.135 8443
 resolv-retry infinite
 nobind
 persist-key
