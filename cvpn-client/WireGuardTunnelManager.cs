@@ -58,7 +58,7 @@ namespace CustomVPN.Client
             }
         }
 
-        public static bool CanPingServer(string ip = "10.8.0.1", int timeoutMs = 400)
+        public static bool CanPingServer(string ip = "10.77.0.1", int timeoutMs = 400)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace CustomVPN.Client
 
                 if (routeAllTraffic)
                 {
-                    configText = configText.Replace("AllowedIPs = 10.8.0.0/24", "AllowedIPs = 0.0.0.0/0");
+                    configText = configText.Replace("AllowedIPs = 10.77.0.0/24", "AllowedIPs = 0.0.0.0/0").Replace("AllowedIPs = 10.77.0.0/22", "AllowedIPs = 0.0.0.0/0");
                 }
 
                 await File.WriteAllTextAsync(ConfigPath, configText);
@@ -111,7 +111,8 @@ namespace CustomVPN.Client
                 Arguments = $"/installtunnelservice \"{ConfigPath}\"",
                 UseShellExecute = true,
                 CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Verb = "runas"
             };
 
             var p = Process.Start(psi);
@@ -120,7 +121,7 @@ namespace CustomVPN.Client
             bool ok = false;
             for (int i = 0; i < 20; i++)
             {
-                if (CanPingServer("10.8.0.1", 350))
+                if (CanPingServer("10.77.0.1", 350))
                 {
                     ok = true;
                     break;
@@ -149,7 +150,8 @@ namespace CustomVPN.Client
                 Arguments = $"/uninstalltunnelservice {TunnelName}",
                 UseShellExecute = true,
                 CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Verb = "runas"
             };
 
             try
@@ -178,11 +180,11 @@ namespace CustomVPN.Client
 
             if (enable)
             {
-                configText = configText.Replace("AllowedIPs = 10.8.0.0/24", "AllowedIPs = 0.0.0.0/0");
+                configText = configText.Replace("AllowedIPs = 10.77.0.0/24", "AllowedIPs = 0.0.0.0/0").Replace("AllowedIPs = 10.77.0.0/22", "AllowedIPs = 0.0.0.0/0");
             }
             else
             {
-                configText = configText.Replace("AllowedIPs = 0.0.0.0/0", "AllowedIPs = 10.8.0.0/24");
+                configText = configText.Replace("AllowedIPs = 0.0.0.0/0", "AllowedIPs = 10.77.0.0/24");
             }
 
             await File.WriteAllTextAsync(ConfigPath, configText);
@@ -196,7 +198,8 @@ namespace CustomVPN.Client
                 Arguments = $"/installtunnelservice \"{ConfigPath}\"",
                 UseShellExecute = true,
                 CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Verb = "runas"
             };
             var p = Process.Start(psi);
             if (p != null) await p.WaitForExitAsync();

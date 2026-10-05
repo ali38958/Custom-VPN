@@ -82,7 +82,7 @@ DNS = 1.1.1.1, 8.8.8.8
 [Peer]
 PublicKey = ${serverPublicKey}
 Endpoint = 144.24.25.135:51820
-AllowedIPs = 10.8.0.0/24
+AllowedIPs = ${user.network?.subnet || "10.77.0.0/24"}
 PersistentKeepalive = 25
 `;
 

@@ -75,7 +75,7 @@ namespace CustomVPN.Client
                 {
                     CurrentUsername = username;
                     var ip = root.GetProperty("user").GetProperty("assignedIp").GetString();
-                    AssignedIp = ip ?? "10.8.0.2";
+                    AssignedIp = ip ?? "10.77.0.2";
 
                     if (root.TryGetProperty("serverConfig", out var cfg))
                     {
