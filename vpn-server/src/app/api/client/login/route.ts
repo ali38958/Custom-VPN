@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         endpoint: "144.24.25.135:443",
         subnet: user.network?.subnet || "10.8.0.0/24",
       },
-      openvpnConfigUrl: "http://144.24.25.135:3001/api/client/config?username=" + username
+      openvpnConfigUrl: req.nextUrl.origin + "/api/client/config?username=" + username
     });
   } catch (error) {
     console.error("Client login error:", error);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+import { ovpnConfig } from "./configData";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,19 +10,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Username required" }, { status: 400 });
     }
 
-    // For now, always return the pre-generated client1.ovpn
-    const configPath = "/home/ubuntu/openvpn-ca/client1.ovpn";
-    if (fs.existsSync(configPath)) {
-        const config = fs.readFileSync(configPath, "utf-8");
-        return new NextResponse(config, {
-            headers: {
-                "Content-Type": "application/x-openvpn-profile",
-                "Content-Disposition": `attachment; filename="${username}.ovpn"`
-            }
-        });
-    } else {
-        return NextResponse.json({ error: "Config not found on server" }, { status: 404 });
-    }
+    return new NextResponse(ovpnConfig, {
+        headers: {
+            "Content-Type": "application/x-openvpn-profile",
+            "Content-Disposition": `attachment; filename="${username}.ovpn"`
+        }
+    });
   } catch (error) {
     console.error("Config fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch config" }, { status: 500 });

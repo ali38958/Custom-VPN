@@ -149,10 +149,8 @@ namespace CustomVPN.Client
                 TxtStatus.Text = "RESTARTING TUNNEL (FULL ROUTE)...";
                 TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
 
-                bool ok = await WireGuardTunnelManager.ActivateTunnelAsync(
-                    VpnService.AssignedIp,
-                    VpnService.ServerPublicKey,
-                    VpnService.ServerEndpoint,
+                bool ok = await OpenVpnTunnelManager.ActivateTunnelAsync(
+                    VpnService.ServerUrl + "/api/client/config?username=" + VpnService.CurrentUsername,
                     VpnService.RouteAllTraffic,
                     msg => Dispatcher.Invoke(() => TxtStatus.Text = msg)
                 );
@@ -173,10 +171,8 @@ namespace CustomVPN.Client
                 TxtStatus.Text = "RESTARTING TUNNEL (SPLIT ROUTE)...";
                 TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
 
-                bool ok = await WireGuardTunnelManager.ActivateTunnelAsync(
-                    VpnService.AssignedIp,
-                    VpnService.ServerPublicKey,
-                    VpnService.ServerEndpoint,
+                bool ok = await OpenVpnTunnelManager.ActivateTunnelAsync(
+                    VpnService.ServerUrl + "/api/client/config?username=" + VpnService.CurrentUsername,
                     VpnService.RouteAllTraffic,
                     msg => Dispatcher.Invoke(() => TxtStatus.Text = msg)
                 );

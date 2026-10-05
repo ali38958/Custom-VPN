@@ -51,7 +51,7 @@ namespace CustomVPN.Client
         {
             try
             {
-                var (_, publicKey) = WireGuardTunnelManager.GetOrCreateKeys();
+
 
                 var payload = new
                 {
@@ -59,8 +59,7 @@ namespace CustomVPN.Client
                     password,
                     deviceId = DeviceId,
                     deviceName = DeviceName,
-                    deviceInfo = $"{Environment.OSVersion}; {Environment.MachineName}",
-                    publicKey
+                    deviceInfo = $"{Environment.OSVersion}; {Environment.MachineName}"
                 };
 
                 statusCallback?.Invoke("Authenticating with Custom VPN server...");
@@ -83,20 +82,19 @@ namespace CustomVPN.Client
                         if (cfg.TryGetProperty("endpoint", out var ep)) ServerEndpoint = ep.GetString() ?? ServerEndpoint;
                         if (cfg.TryGetProperty("subnet", out var sn)) Subnet = sn.GetString() ?? Subnet;
                     }
+                    string configUrl = root.TryGetProperty("openvpnConfigUrl", out var curl) ? (curl.GetString() ?? "") : "";
 
                     statusCallback?.Invoke("Activating virtual router network adapter...");
 
-                    // Activate the actual WireGuard kernel tunnel adapter on Windows
-                    bool tunnelOk = await WireGuardTunnelManager.ActivateTunnelAsync(
-                        AssignedIp,
-                        ServerPublicKey,
-                        ServerEndpoint,
+                    // Activate the actual OpenVPN tunnel adapter on Windows
+                    bool tunnelOk = await OpenVpnTunnelManager.ActivateTunnelAsync(
+                        configUrl,
                         RouteAllTraffic,
                         statusCallback
                     );
 
                     IsConnected = true;
-                    return (true, tunnelOk ? "Connected to virtual VPN router!" : "Authenticated, but WireGuard adapter creation failed.", AssignedIp);
+                    return (true, tunnelOk ? "Connected to OpenVPN virtual router!" : "Authenticated, but OpenVPN adapter creation failed.", AssignedIp);
                 }
                 else
                 {
@@ -115,8 +113,8 @@ namespace CustomVPN.Client
             try
             {
                 // Revert full tunnel routes if active
-                await WireGuardTunnelManager.SetRouteAllTrafficAsync(false, ServerPublicKey, ServerEndpoint);
-                await WireGuardTunnelManager.DeactivateTunnelAsync();
+                await OpenVpnTunnelManager.SetRouteAllTrafficAsync(false, ServerPublicKey, ServerEndpoint);
+                await OpenVpnTunnelManager.DeactivateTunnelAsync();
                 IsConnected = false;
 
                 var payload = new
