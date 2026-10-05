@@ -145,13 +145,22 @@ namespace CustomVPN.Client
             VpnService.RouteAllTraffic = true;
             if (VpnService.IsConnected)
             {
-                await WireGuardTunnelManager.ActivateTunnelAsync(
+                ChkRouteAll.IsEnabled = false;
+                TxtStatus.Text = "RESTARTING TUNNEL (FULL ROUTE)...";
+                TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
+
+                bool ok = await WireGuardTunnelManager.ActivateTunnelAsync(
                     VpnService.AssignedIp,
                     VpnService.ServerPublicKey,
                     VpnService.ServerEndpoint,
-                    true
+                    VpnService.RouteAllTraffic,
+                    msg => Dispatcher.Invoke(() => TxtStatus.Text = msg)
                 );
-                MessageBox.Show("Virtual adapter reconfigured: Default gateway redirected. All internet traffic is now encrypted through the VPN server.", "Full Tunnel Active", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                ChkRouteAll.IsEnabled = true;
+                TxtStatus.Text = ok ? "FULL TUNNEL ACTIVE" : "GATEWAY ERROR";
+                TxtStatus.Foreground = ok ? System.Windows.Media.Brushes.DodgerBlue : System.Windows.Media.Brushes.Red;
+                StatusDot.Background = ok ? System.Windows.Media.Brushes.DodgerBlue : System.Windows.Media.Brushes.Red;
             }
         }
 
@@ -160,13 +169,22 @@ namespace CustomVPN.Client
             VpnService.RouteAllTraffic = false;
             if (VpnService.IsConnected)
             {
-                await WireGuardTunnelManager.ActivateTunnelAsync(
+                ChkRouteAll.IsEnabled = false;
+                TxtStatus.Text = "RESTARTING TUNNEL (SPLIT ROUTE)...";
+                TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
+
+                bool ok = await WireGuardTunnelManager.ActivateTunnelAsync(
                     VpnService.AssignedIp,
                     VpnService.ServerPublicKey,
                     VpnService.ServerEndpoint,
-                    false
+                    VpnService.RouteAllTraffic,
+                    msg => Dispatcher.Invoke(() => TxtStatus.Text = msg)
                 );
-                MessageBox.Show("Virtual adapter reconfigured: Split-tunnel LAN mode active (only 10.77.0.0/24 routes through VPN). Native internet restored.", "Split Tunnel Active", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                ChkRouteAll.IsEnabled = true;
+                TxtStatus.Text = ok ? "CONNECTED" : "GATEWAY ERROR";
+                TxtStatus.Foreground = ok ? System.Windows.Media.Brushes.LimeGreen : System.Windows.Media.Brushes.Red;
+                StatusDot.Background = ok ? System.Windows.Media.Brushes.LimeGreen : System.Windows.Media.Brushes.Red;
             }
         }
 

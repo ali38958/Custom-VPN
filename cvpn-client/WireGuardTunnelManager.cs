@@ -71,26 +71,166 @@ namespace CustomVPN.Client
                 try
                 {
                     var lines = File.ReadAllLines(KeyFile);
-                    if (lines.Length >= 2) return (lines[0].Trim(), lines[1].Trim());
+                    if (lines.Length >= 2 && !string.IsNullOrWhiteSpace(lines[0]) && !string.IsNullOrWhiteSpace(lines[1]))
+                    {
+                        string priv = lines[0].Trim();
+                        string expectedPub = ComputePublicKey(priv);
+                        if (!string.IsNullOrEmpty(expectedPub))
+                        {
+                            if (lines[1].Trim() != expectedPub)
+                            {
+                                File.WriteAllLines(KeyFile, new[] { priv, expectedPub });
+                            }
+                            return (priv, expectedPub);
+                        }
+                        return (priv, lines[1].Trim());
+                    }
                 }
                 catch { }
             }
 
-            // Generate clamp-compatible random Curve25519 private key
-            byte[] keyBytes = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
+            string privateKey = "";
+            string publicKey = "";
+
+            try
             {
-                rng.GetBytes(keyBytes);
+                var wgExe = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WireGuard", "wg.exe");
+                if (File.Exists(wgExe))
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = wgExe,
+                        Arguments = "genkey",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardOutput = true
+                    };
+                    using var proc = Process.Start(psi);
+                    if (proc != null)
+                    {
+                        privateKey = proc.StandardOutput.ReadToEnd().Trim();
+                        proc.WaitForExit();
+                        publicKey = ComputePublicKey(privateKey);
+                    }
+                }
             }
-            keyBytes[0] &= 248;
-            keyBytes[31] &= 127;
-            keyBytes[31] |= 64;
+            catch { }
 
-            string privateKey = Convert.ToBase64String(keyBytes);
-            string publicKey = ComputePublicKey(keyBytes);
+            if (string.IsNullOrEmpty(privateKey) || string.IsNullOrEmpty(publicKey))
+            {
+                byte[] keyBytes = new byte[32];
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(keyBytes);
+                }
+                keyBytes[0] &= 248;
+                keyBytes[31] &= 127;
+                keyBytes[31] |= 64;
+                privateKey = Convert.ToBase64String(keyBytes);
+                publicKey = ComputePublicKey(privateKey);
+            }
 
+            Directory.CreateDirectory(ConfigDir);
             File.WriteAllLines(KeyFile, new[] { privateKey, publicKey });
             return (privateKey, publicKey);
+        }
+
+        public static bool CanPingServer(string ip = "10.77.0.1", int timeoutMs = 400)
+        {
+            try
+            {
+                using var ping = new System.Net.NetworkInformation.Ping();
+                var reply = ping.Send(ip, timeoutMs);
+                return reply.Status == System.Net.NetworkInformation.IPStatus.Success;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
+        public static bool IsTunnelActive()
+        {
+            if (CanPingServer("10.77.0.1", 350)) return true;
+            if (IsTunnelServiceRunning()) return true;
+            return false;
+        }
+
+        public static string GetActiveTunnelInterfaceName()
+        {
+            try
+            {
+                foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up)
+                    {
+                        if (ni.Name.StartsWith(TunnelName, StringComparison.OrdinalIgnoreCase) ||
+                            ni.Description.Contains("WireGuard", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return ni.Name;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return TunnelName;
+        }
+
+        public static int GetActiveTunnelInterfaceIndex()
+        {
+            try
+            {
+                foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.Name.StartsWith(TunnelName, StringComparison.OrdinalIgnoreCase) ||
+                        ni.Description.Contains("WireGuard", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var ipProps = ni.GetIPProperties();
+                        var ipv4 = ipProps.GetIPv4Properties();
+                        if (ipv4 != null) return ipv4.Index;
+                    }
+                }
+            }
+            catch { }
+            return -1;
+        }
+
+        private static void SetSecureFileAcl(string filePath)
+        {
+            try
+            {
+                var fi = new FileInfo(filePath);
+                var acl = fi.GetAccessControl();
+                var adminSid = new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.BuiltinAdministratorsSid, null);
+                var systemSid = new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.LocalSystemSid, null);
+
+                acl.SetOwner(adminSid);
+                acl.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+
+                var existingRules = acl.GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                foreach (System.Security.AccessControl.FileSystemAccessRule rule in existingRules)
+                {
+                    acl.RemoveAccessRule(rule);
+                }
+
+                acl.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(systemSid, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.AccessControlType.Allow));
+                acl.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(adminSid, System.Security.AccessControl.FileSystemRights.FullControl, System.Security.AccessControl.AccessControlType.Allow));
+                acl.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.BuiltinUsersSid, null), System.Security.AccessControl.FileSystemRights.ReadAndExecute, System.Security.AccessControl.AccessControlType.Allow));
+
+                fi.SetAccessControl(acl);
+            }
+            catch { }
+        }
+
+        public static async Task EnsureFirewallRulesAsync()
+        {
+            try
+            {
+                await ExecuteCommandAsync("netsh", "advfirewall firewall add rule name=\"CustomVPN-Allow-ICMP\" protocol=icmpv4:8,any dir=in action=allow");
+                await ExecuteCommandAsync("netsh", $"advfirewall firewall add rule name=\"CustomVPN-Allow-P2P\" protocol=TCP localport={FileTransferService.TransferPort} dir=in action=allow");
+            }
+            catch { }
         }
 
         public static async Task<bool> ActivateTunnelAsync(
@@ -102,92 +242,284 @@ namespace CustomVPN.Client
         {
             if (!await EnsureWireGuardInstalledAsync(logCallback))
             {
-                logCallback?.Invoke("WireGuard engine installation required to create virtual network adapter.");
+                logCallback?.Invoke("WireGuard engine installation required.");
                 return false;
             }
 
-            var (privateKey, _) = GetOrCreateKeys();
+            // Check if WireGuard is installed
 
-            // Allowed IPs: Split tunnel (LAN subnet only) vs Full tunnel (0.0.0.0/0)
-            string allowedIps = routeAllTraffic ? "0.0.0.0/0, ::/0" : "10.77.0.0/24";
-            string dns = routeAllTraffic ? "DNS = 1.1.1.1, 8.8.8.8\n" : "";
+            var (privateKey, _) = GetOrCreateKeys();
 
             var configContent = new StringBuilder();
             configContent.AppendLine("[Interface]");
             configContent.AppendLine($"PrivateKey = {privateKey}");
-            configContent.AppendLine($"Address = {assignedIp}/24");
-            if (!string.IsNullOrEmpty(dns)) configContent.Append(dns);
+            configContent.AppendLine($"Address = {assignedIp}/32");
+            configContent.AppendLine("MTU = 1360");
+            if (routeAllTraffic)
+            {
+                configContent.AppendLine("DNS = 1.1.1.1, 8.8.8.8");
+            }
             configContent.AppendLine();
             configContent.AppendLine("[Peer]");
             configContent.AppendLine($"PublicKey = {serverPublicKey}");
             configContent.AppendLine($"Endpoint = {serverEndpoint}");
-            configContent.AppendLine($"AllowedIPs = {allowedIps}");
+            configContent.AppendLine($"AllowedIPs = {(routeAllTraffic ? "0.0.0.0/0" : "10.77.0.0/24")}");
             configContent.AppendLine("PersistentKeepalive = 25");
 
+            string newConfig = configContent.ToString();
             Directory.CreateDirectory(ConfigDir);
-            await File.WriteAllTextAsync(ConfigPath, configContent.ToString());
+            
+            bool configChanged = true;
+            if (File.Exists(ConfigPath))
+            {
+                string oldConfig = await File.ReadAllTextAsync(ConfigPath);
+                if (oldConfig.Trim() == newConfig.Trim())
+                {
+                    configChanged = false;
+                }
+            }
 
-            logCallback?.Invoke("Installing WireGuard virtual network adapter service...");
+            await File.WriteAllTextAsync(ConfigPath, newConfig);
+            SetSecureFileAcl(ConfigPath);
 
-            // First uninstall existing service if present
-            await DeactivateTunnelAsync();
+            // If config didn't change and tunnel is active, reuse it
+            if (!configChanged && IsTunnelActive())
+            {
+                logCallback?.Invoke($"WireGuard tunnel already active! IP: {assignedIp}");
+                _ = EnsureFirewallRulesAsync();
+                return true;
+            }
 
+            // Otherwise, we need to restart/start the service
+            if (IsTunnelServiceRunning())
+            {
+                logCallback?.Invoke("Restarting WireGuard adapter with new configuration...");
+                await ExecuteCommandAsync("sc.exe", $"stop \"WireGuardTunnel${TunnelName}\"");
+                await Task.Delay(1500); // Give it time to stop
+            }
+
+            // Auto-sync into official WireGuard directory
+            try
+            {
+                var wgConfigDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WireGuard", "Data", "Configurations");
+                if (Directory.Exists(wgConfigDir))
+                {
+                    File.Copy(ConfigPath, Path.Combine(wgConfigDir, $"{TunnelName}.conf"), true);
+                }
+            }
+            catch { }
+
+            if (IsTunnelServiceInstalled())
+            {
+                logCallback?.Invoke("Starting existing WireGuard virtual adapter service...");
+                await ExecuteCommandAsync("sc.exe", $"start \"WireGuardTunnel${TunnelName}\"");
+            }
+            else
+            {
+                logCallback?.Invoke("Installing and starting WireGuard virtual adapter service...");
+                var psiInstall = new ProcessStartInfo
+                {
+                    FileName = WireGuardExePath,
+                    Arguments = $"/installtunnelservice \"{ConfigPath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var proc = Process.Start(psiInstall))
+                {
+                    if (proc != null) await proc.WaitForExitAsync();
+                }
+            }
+
+            bool ok = false;
+            for (int i = 0; i < 15; i++)
+            {
+                if (GetActiveTunnelInterfaceIndex() > 0)
+                {
+                    ok = true;
+                    break;
+                }
+                await Task.Delay(300);
+            }
+
+            if (ok)
+            {
+                _ = EnsureFirewallRulesAsync();
+                logCallback?.Invoke($"Virtual router adapter active! IP assigned: {assignedIp}");
+            }
+            else
+            {
+                logCallback?.Invoke("Failed to activate WireGuard tunnel adapter.");
+            }
+            return ok;
+        }
+
+        public static string? GetPhysicalDefaultGateway()
+        {
+            try
+            {
+                foreach (var ni in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (ni.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up &&
+                        ni.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback &&
+                        !ni.Name.StartsWith(TunnelName, StringComparison.OrdinalIgnoreCase) &&
+                        !ni.Description.Contains("WireGuard", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var props = ni.GetIPProperties();
+                        foreach (var gw in props.GatewayAddresses)
+                        {
+                            if (gw.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                                !gw.Address.ToString().StartsWith("0.0.0.0"))
+                            {
+                                return gw.Address.ToString();
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        public static string ResolveServerIp(string endpoint)
+        {
+            string host = endpoint.Split(':')[0].Trim();
+            try
+            {
+                var addrs = System.Net.Dns.GetHostAddresses(host);
+                foreach (var a in addrs)
+                {
+                    if (a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        return a.ToString();
+                    }
+                }
+            }
+            catch { }
+            return host;
+        }
+
+        public static Task<bool> SetRouteAllTrafficAsync(
+            bool routeAll,
+            string serverPublicKey,
+            string serverEndpoint,
+            Action<string>? logCallback = null)
+        {
+            return Task.FromResult(true);
+        }
+
+        private static async Task<int> ExecuteCommandAsync(string exe, string args)
+        {
             try
             {
                 var psi = new ProcessStartInfo
                 {
-                    FileName = WireGuardExePath,
-                    Arguments = $"/installtunnelservice \"{ConfigPath}\"",
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WindowStyle = ProcessWindowStyle.Hidden
+                    FileName = exe,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    await proc.WaitForExitAsync();
+                    return proc.ExitCode;
+                }
+            }
+            catch { }
+            return -1;
+        }
+
+        public static bool IsTunnelServiceInstalled()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "sc.exe",
+                    Arguments = $"query \"WireGuardTunnel${TunnelName}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
                 };
 
-                var proc = Process.Start(psi);
-                if (proc != null) await proc.WaitForExitAsync();
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = proc.StandardOutput.ReadToEnd();
+                    proc.WaitForExit();
+                    return !output.Contains("1060");
+                }
+            }
+            catch { }
+            return false;
+        }
 
-                logCallback?.Invoke("Virtual router adapter active! IP assigned: " + assignedIp);
-                return true;
-            }
-            catch (Exception ex)
+        public static bool IsTunnelServiceRunning()
+        {
+            try
             {
-                logCallback?.Invoke($"Tunnel activation error: {ex.Message}");
-                return false;
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "sc.exe",
+                    Arguments = $"query \"WireGuardTunnel${TunnelName}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                };
+
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = proc.StandardOutput.ReadToEnd();
+                    proc.WaitForExit();
+                    return output.Contains("RUNNING");
+                }
             }
+            catch { }
+            return false;
         }
 
         public static async Task DeactivateTunnelAsync()
         {
-            if (!IsWireGuardInstalled) return;
-
-            try
+            if (IsTunnelServiceRunning())
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = WireGuardExePath,
-                    Arguments = $"/uninstalltunnelservice {TunnelName}",
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-
-                var proc = Process.Start(psi);
-                if (proc != null) await proc.WaitForExitAsync();
+                await ExecuteCommandAsync("sc.exe", $"stop \"WireGuardTunnel${TunnelName}\"");
             }
-            catch { }
         }
 
-        /// <summary>
-        /// Pure C# Curve25519 public key computation from 32-byte clamped private key.
-        /// </summary>
-        private static string ComputePublicKey(byte[] privateKey)
+        private static string ComputePublicKey(string privateKey)
         {
-            // Curve25519 scalar multiplication of basepoint 9
-            byte[] basePoint = new byte[32];
-            basePoint[0] = 9;
-            byte[] result = new byte[32];
-            Curve25519_Mul(result, privateKey, basePoint);
-            return Convert.ToBase64String(result);
+            try
+            {
+                var wgExe = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WireGuard", "wg.exe");
+                if (File.Exists(wgExe))
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = wgExe,
+                        Arguments = "pubkey",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true
+                    };
+
+                    using var proc = Process.Start(psi);
+                    if (proc != null)
+                    {
+                        proc.StandardInput.WriteLine(privateKey);
+                        proc.StandardInput.Close();
+                        string pubKey = proc.StandardOutput.ReadToEnd().Trim();
+                        proc.WaitForExit();
+                        if (!string.IsNullOrEmpty(pubKey)) return pubKey;
+                    }
+                }
+            }
+            catch { }
+            return "";
         }
 
         #region Curve25519 Math Implementation
