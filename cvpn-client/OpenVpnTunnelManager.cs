@@ -77,7 +77,7 @@ namespace CustomVPN.Client
         }
 
         public static async Task<bool> ActivateTunnelAsync(
-            string configUrl,
+            string configText,
             bool routeAllTraffic,
             Action<string>? logCallback = null)
         {
@@ -87,12 +87,10 @@ namespace CustomVPN.Client
                 return false;
             }
 
-            logCallback?.Invoke("Downloading OpenVPN profile from server...");
+            logCallback?.Invoke("Applying OpenVPN profile...");
             try
             {
-                using var client = new HttpClient();
-                var ovpnConfigBytes = await client.GetByteArrayAsync(configUrl);
-                string ovpnConfig = System.Text.Encoding.UTF8.GetString(ovpnConfigBytes);
+                string ovpnConfig = configText;
 
                 Directory.CreateDirectory(ConfigDir);
 

@@ -19,6 +19,7 @@ namespace CustomVPN.Client
         public static string Subnet { get; set; } = "10.77.0.0/24";
         public static bool IsConnected { get; set; } = false;
         public static bool RouteAllTraffic { get; set; } = false;
+        public static string OpenVpnConfigText { get; set; } = string.Empty;
 
         private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -82,13 +83,14 @@ namespace CustomVPN.Client
                         if (cfg.TryGetProperty("endpoint", out var ep)) ServerEndpoint = ep.GetString() ?? ServerEndpoint;
                         if (cfg.TryGetProperty("subnet", out var sn)) Subnet = sn.GetString() ?? Subnet;
                     }
-                    string configUrl = root.TryGetProperty("openvpnConfigUrl", out var curl) ? (curl.GetString() ?? "") : "";
-
+                    string configText = root.TryGetProperty("openvpnConfigText", out var ctxt) ? (ctxt.GetString() ?? "") : "";
+                    OpenVpnConfigText = configText;
+                    
                     statusCallback?.Invoke("Activating virtual router network adapter...");
 
                     // Activate the actual OpenVPN tunnel adapter on Windows
                     bool tunnelOk = await OpenVpnTunnelManager.ActivateTunnelAsync(
-                        configUrl,
+                        configText,
                         RouteAllTraffic,
                         statusCallback
                     );

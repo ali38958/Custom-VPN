@@ -150,7 +150,7 @@ namespace CustomVPN.Client
                 TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
 
                 bool ok = await OpenVpnTunnelManager.ActivateTunnelAsync(
-                    VpnService.ServerUrl + "/api/client/config?username=" + VpnService.CurrentUsername,
+                    VpnService.OpenVpnConfigText,
                     VpnService.RouteAllTraffic,
                     msg => Dispatcher.Invoke(() => TxtStatus.Text = msg)
                 );
@@ -172,7 +172,7 @@ namespace CustomVPN.Client
                 TxtStatus.Foreground = System.Windows.Media.Brushes.Yellow;
 
                 bool ok = await OpenVpnTunnelManager.ActivateTunnelAsync(
-                    VpnService.ServerUrl + "/api/client/config?username=" + VpnService.CurrentUsername,
+                    VpnService.OpenVpnConfigText,
                     VpnService.RouteAllTraffic,
                     msg => Dispatcher.Invoke(() => TxtStatus.Text = msg)
                 );

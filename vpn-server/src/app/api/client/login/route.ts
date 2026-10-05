@@ -52,7 +52,29 @@ export async function POST(req: NextRequest) {
         endpoint: "144.24.25.135:8443",
         subnet: user.network?.subnet || "10.77.0.0/24",
       },
-      openvpnConfigUrl: req.nextUrl.origin + "/api/client/config?username=" + username
+      openvpnConfigUrl: req.nextUrl.origin + "/api/client/config?username=" + username,
+      openvpnConfigText: `client
+dev tun
+proto tcp
+remote 144.24.25.135 8443
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca ca.crt
+cert ${username}.crt
+key ${username}.key
+remote-cert-tls server
+cipher AES-256-CBC
+verb 3
+<ca>
+-----BEGIN CERTIFICATE-----
+MIIDRjCCAi6gAwIBAgIUdG3qN/F7W06wU30J9fFpT/7M8r8wDQYJKoZIhvcNAQEL
+BQAwFjEUMBIGA1UEAwwLQ3VzdG9tVlBOQ0EwHhcNMjQwMTAxMDAwMDAwWhcNMzQw
+MTAxMDAwMDAwWjAWMRQwEgYDVQQDDAtDdXN0b21WUE5DQTCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAM/9Z... (mock CA) ...
+-----END CERTIFICATE-----
+</ca>`
     });
   } catch (error) {
     console.error("Client login error:", error);
