@@ -62,7 +62,7 @@ namespace CustomVPN.Client
             }
         }
 
-        public static bool CanPingServer(string ip = "10.77.0.1", int timeoutMs = 400)
+        public static bool CanPingServer(string ip = "10.8.0.1", int timeoutMs = 400)
         {
             try
             {
@@ -130,7 +130,7 @@ namespace CustomVPN.Client
             bool ok = false;
             for (int i = 0; i < 20; i++)
             {
-                if (CanPingServer("10.77.0.1", 350))
+                if (CanPingServer("10.8.0.1", 350))
                 {
                     ok = true;
                     break;

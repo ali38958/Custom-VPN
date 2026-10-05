@@ -16,7 +16,7 @@ namespace CustomVPN.Client
         public static string AssignedIp { get; set; } = string.Empty;
         public static string ServerPublicKey { get; set; } = string.Empty;
         public static string ServerEndpoint { get; set; } = "144.24.25.135:51820";
-        public static string Subnet { get; set; } = "10.77.0.0/24";
+        public static string Subnet { get; set; } = "10.8.0.0/24";
         public static bool IsConnected { get; set; } = false;
         public static bool RouteAllTraffic { get; set; } = false;
         public static string OpenVpnConfigText { get; set; } = string.Empty;
