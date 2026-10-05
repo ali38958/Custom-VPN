@@ -83,20 +83,20 @@ namespace CustomVPN.Client
                         if (cfg.TryGetProperty("endpoint", out var ep)) ServerEndpoint = ep.GetString() ?? ServerEndpoint;
                         if (cfg.TryGetProperty("subnet", out var sn)) Subnet = sn.GetString() ?? Subnet;
                     }
-                    string configText = root.TryGetProperty("openvpnConfigText", out var ctxt) ? (ctxt.GetString() ?? "") : "";
-                    OpenVpnConfigText = configText;
+                    string configText = root.TryGetProperty("wireguardConfigText", out var ctxt) ? (ctxt.GetString() ?? "") : "";
+                    OpenVpnConfigText = configText; // We keep the variable name for compatibility or rename it later
                     
                     statusCallback?.Invoke("Activating virtual router network adapter...");
 
-                    // Activate the actual OpenVPN tunnel adapter on Windows
-                    bool tunnelOk = await OpenVpnTunnelManager.ActivateTunnelAsync(
+                    // Activate the actual WireGuard tunnel adapter on Windows
+                    bool tunnelOk = await WireGuardTunnelManager.ActivateTunnelAsync(
                         configText,
                         RouteAllTraffic,
                         statusCallback
                     );
 
                     IsConnected = true;
-                    return (true, tunnelOk ? "Connected to OpenVPN virtual router!" : "Authenticated, but OpenVPN adapter creation failed.", AssignedIp);
+                    return (true, tunnelOk ? "Connected to WireGuard virtual router!" : "Authenticated, but WireGuard adapter creation failed.", AssignedIp);
                 }
                 else
                 {
@@ -115,8 +115,8 @@ namespace CustomVPN.Client
             try
             {
                 // Revert full tunnel routes if active
-                await OpenVpnTunnelManager.SetRouteAllTrafficAsync(false, ServerPublicKey, ServerEndpoint);
-                await OpenVpnTunnelManager.DeactivateTunnelAsync();
+                await WireGuardTunnelManager.SetRouteAllTrafficAsync(false, ServerPublicKey, ServerEndpoint);
+                await WireGuardTunnelManager.DeactivateTunnelAsync();
                 IsConnected = false;
 
                 var payload = new
