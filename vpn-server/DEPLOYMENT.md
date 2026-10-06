@@ -1,12 +1,12 @@
 # PrivateNet Server Deployment Guide
 
-This guide describes how to replace your existing web service on `resolvia.cc.cd` (Ubuntu Server) with the PrivateNet VPN Server & Web Portal.
+This guide describes how to replace your existing web service on `PrivateNet` (Ubuntu Server) with the PrivateNet VPN Server & Web Portal.
 
 ---
 
 ## 1. Prerequisites on the Ubuntu Server
 - Ubuntu 22.04 or 24.04 LTS (x86_64 or ARM64 Ampere).
-- DNS A record: `resolvia.cc.cd` pointing to your server's public IPv4.
+- DNS A record: `PrivateNet` pointing to your server's public IPv4.
 - Ports required to be open in firewall / cloud security list:
   - `80/TCP` (HTTP for ACME challenges & redirect)
   - `443/TCP` (HTTPS for Web Portal & API)
@@ -58,14 +58,14 @@ chmod +x deploy.sh
    - Starts WireGuard via `systemctl restart wg-quick@wg0`.
    - Starts `wg-agent.mjs` (root daemon that dynamically updates WireGuard peers from MySQL).
    - Starts Next.js application on port 3000 via PM2.
-   - Configures Caddy to automatically terminate HTTPS for `resolvia.cc.cd` with Let's Encrypt certificates.
+   - Configures Caddy to automatically terminate HTTPS for `PrivateNet` with Let's Encrypt certificates.
 
 ---
 
 ## 5. First-Time Setup (Bootstrap Admin)
 1. Open your browser and navigate to:
    ```
-   https://resolvia.cc.cd/signup
+   https://PrivateNet/signup
    ```
 2. Enter your email, display name, and password. Because this is the very first registered user in the database, the server **automatically promotes your account to Network Administrator** without requiring an invite code!
 3. From your dashboard:

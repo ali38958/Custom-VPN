@@ -73,7 +73,7 @@
                 </Border>
                 <StackPanel Margin="12,0,0,0">
                     <TextBlock Text="Custom VPN" FontWeight="Bold" FontSize="16" Foreground="#F8FAFC"/>
-                    <TextBlock x:Name="TxtServerEndpoint" Text="Target: https://resolvia.cc.cd" FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock x:Name="TxtServerEndpoint" Text="Target: https://PrivateNet" FontSize="11" Foreground="#94A3B8"/>
                 </StackPanel>
             </StackPanel>
 

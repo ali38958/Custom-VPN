@@ -2,6 +2,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CustomVPN.Client
@@ -90,7 +95,7 @@ namespace CustomVPN.Client
 
                 if (routeAllTraffic)
                 {
-                    configText = configText.Replace("AllowedIPs = 10.77.0.0/24", "AllowedIPs = 0.0.0.0/0").Replace("AllowedIPs = 10.77.0.0/22", "AllowedIPs = 0.0.0.0/0");
+                    configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+", "AllowedIPs = 0.0.0.0/0, ::/0");
                 }
 
                 await File.WriteAllTextAsync(ConfigPath, configText);
@@ -158,8 +163,12 @@ namespace CustomVPN.Client
             {
                 var p = Process.Start(psi);
                 if (p != null) await p.WaitForExitAsync();
+                await Task.Delay(2000);
             }
-            catch { }
+            catch 
+            {
+                await Task.Delay(500);
+            }
         }
 
         public static async Task SetRouteAllTrafficAsync(bool enable, string serverPublicKey, string serverEndpoint)
@@ -180,11 +189,11 @@ namespace CustomVPN.Client
 
             if (enable)
             {
-                configText = configText.Replace("AllowedIPs = 10.77.0.0/24", "AllowedIPs = 0.0.0.0/0").Replace("AllowedIPs = 10.77.0.0/22", "AllowedIPs = 0.0.0.0/0");
+                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+", "AllowedIPs = 0.0.0.0/0, ::/0");
             }
             else
             {
-                configText = configText.Replace("AllowedIPs = 0.0.0.0/0", "AllowedIPs = 10.77.0.0/24");
+                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*0\.0\.0\.0/0.*", $"AllowedIPs = {VpnService.Subnet}");
             }
 
             await File.WriteAllTextAsync(ConfigPath, configText);

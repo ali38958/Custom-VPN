@@ -32,7 +32,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
-          <p>PrivateNet Server &bull; Node &bull; OpenVPN Virtual Subnet 10.8.0.0/24 &bull; resolvia.cc.cd</p>
+          <p>PrivateNet Server &bull; Node &bull; OpenVPN Virtual Subnet 10.8.0.0/24 &bull; PrivateNet</p>
         </footer>
       </body>
     </html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PrivateNet Server Deployment Script for Ubuntu 24.04 / 22.04 LTS
-# Target Domain: resolvia.cc.cd
+# Target Domain: PrivateNet
 # Subnet: 10.77.0.0/22 | Hub IP: 10.77.0.1
 set -e
 
@@ -87,7 +87,7 @@ cat <<EOF > .env
 DATABASE_URL="mysql://privnet_user:PrivNetSecret2026!@127.0.0.1:3306/privatenet"
 JWT_SECRET="$RAND_SECRET"
 SERVER_PUBLIC_KEY="$SERVER_PUBKEY"
-SERVER_ENDPOINT="resolvia.cc.cd:51820"
+SERVER_ENDPOINT="PrivateNet:51820"
 VIRTUAL_SUBNET="10.77.0.0/22"
 SERVER_TUNNEL_IP="10.77.0.1"
 INTERNAL_API_URL="http://10.77.0.1:3000"
@@ -110,9 +110,9 @@ pm2 delete vpn-server 2>/dev/null || true
 pm2 start npm --name "vpn-server" -- start -- -p 3000
 pm2 save
 
-echo "=== [7/8] Configuring Caddy for resolvia.cc.cd ==="
+echo "=== [7/8] Configuring Caddy for PrivateNet ==="
 cat <<EOF | sudo tee /etc/caddy/Caddyfile
-resolvia.cc.cd {
+PrivateNet {
     encode zstd gzip
     reverse_proxy 127.0.0.1:3000
     header Strict-Transport-Security "max-age=31536000"
@@ -122,7 +122,7 @@ EOF
 sudo systemctl restart caddy
 
 echo "=== [8/8] Deployment Complete! ==="
-echo "Your PrivateNet server is live at: https://resolvia.cc.cd"
-echo "WireGuard Endpoint: resolvia.cc.cd:51820"
+echo "Your PrivateNet server is live at: https://PrivateNet"
+echo "WireGuard Endpoint: PrivateNet:51820"
 echo "Server Public Key: $SERVER_PUBKEY"
-echo "Visit https://resolvia.cc.cd/signup to create the initial Admin account!"
+echo "Visit https://PrivateNet/signup to create the initial Admin account!"

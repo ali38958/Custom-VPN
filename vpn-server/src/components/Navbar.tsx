@@ -52,7 +52,7 @@ export default function Navbar() {
               Custom VPN
             </span>
             <span className="hidden sm:inline-block ml-2 text-xs font-mono px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-cyan-400">
-              resolvia.cc.cd
+              PrivateNet
             </span>
           </div>
         </Link>
