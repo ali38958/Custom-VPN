@@ -52,10 +52,16 @@ export async function POST(req: NextRequest) {
         const { exec } = require('child_process');
         const util = require('util');
         const execAsync = util.promisify(exec);
-        const pkRes = await execAsync('wg genkey');
-        clientPrivateKey = pkRes.stdout.trim();
-        const pubRes = await execAsync(`echo "${clientPrivateKey}" | wg pubkey`);
-        clientPublicKey = pubRes.stdout.trim();
+        try {
+          const pkRes = await execAsync('wg genkey');
+          clientPrivateKey = pkRes.stdout.trim();
+          const pubRes = await execAsync(`echo "${clientPrivateKey}" | wg pubkey`);
+          clientPublicKey = pubRes.stdout.trim();
+          if (!clientPrivateKey || !clientPublicKey) throw new Error("Empty key output");
+        } catch (keyErr) {
+          console.error("[login] wg key generation failed:", keyErr);
+          return NextResponse.json({ error: "VPN key generation failed on server. Contact admin." }, { status: 500 });
+        }
       } else {
         // Fallback for local windows dev
         clientPrivateKey = "4F... (mock private key)";
@@ -91,8 +97,9 @@ PersistentKeepalive = 25
       user: { id: user.id, username: user.username, assignedIp: user.assignedIp },
       network: user.network,
       serverConfig: {
+        serverPublicKey: process.env.SERVER_PUBLIC_KEY || "p+jZFDQaOQVcr84oqZiYDmamfTdID+3wUeH912gYLR8=",
         endpoint: "144.24.25.135:51820",
-        subnet: user.network?.subnet || "10.8.0.0/24",
+        subnet: user.network?.subnet || "10.77.0.0/24",
       },
       wireguardConfigUrl: req.nextUrl.origin + "/api/client/config?username=" + username,
       wireguardConfigText: wgConfigText
