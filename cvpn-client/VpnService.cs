@@ -9,17 +9,25 @@ namespace CustomVPN.Client
 {
     public class VpnService
     {
-        public static string ServerUrl { get; set; } = "https://PrivateNet";
+        private static string SessionFilePath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CustomVPN", "session.json");
+        public static string ServerUrl { get; set; } = "https://resolvia.cc.cd";
         public static string CurrentUsername { get; set; } = string.Empty;
         public static string DeviceId { get; private set; } = string.Empty;
         public static string DeviceName { get; set; } = Environment.MachineName;
         public static string AssignedIp { get; set; } = string.Empty;
         public static string ServerPublicKey { get; set; } = string.Empty;
         public static string ServerEndpoint { get; set; } = "144.24.25.135:51820";
-        public static string Subnet { get; set; } = "10.8.0.0/24";
+        public static string Subnet { get; set; } = "10.77.0.0/24";
         public static bool IsConnected { get; set; } = false;
         public static bool RouteAllTraffic { get; set; } = false;
         public static string OpenVpnConfigText { get; set; } = string.Empty;
+        
+        public static event Action? SessionExpired;
+
+        public static void TriggerSessionExpired()
+        {
+            SessionExpired?.Invoke();
+        }
 
         private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -95,8 +103,25 @@ namespace CustomVPN.Client
                         statusCallback
                     );
 
-                    IsConnected = true;
-                    return (true, tunnelOk ? "Connected to WireGuard virtual router!" : "Authenticated, but WireGuard adapter creation failed.", AssignedIp);
+                    if (tunnelOk)
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(SessionFilePath)!);
+                        var sessionData = new
+                        {
+                            Username = CurrentUsername,
+                            Ip = AssignedIp,
+                            ConfigText = OpenVpnConfigText,
+                            RouteAll = RouteAllTraffic,
+                            ServerPubKey = ServerPublicKey,
+                            ServerEp = ServerEndpoint,
+                            Sub = Subnet,
+                            Url = ServerUrl
+                        };
+                        await File.WriteAllTextAsync(SessionFilePath, JsonSerializer.Serialize(sessionData));
+                    }
+
+                    IsConnected = tunnelOk;
+                    return (tunnelOk, tunnelOk ? "Connected to WireGuard virtual router!" : "Authenticated, but WireGuard adapter creation failed.", AssignedIp);
                 }
                 else
                 {
@@ -115,9 +140,10 @@ namespace CustomVPN.Client
             try
             {
                 // Revert full tunnel routes if active
-                await WireGuardTunnelManager.SetRouteAllTrafficAsync(false, ServerPublicKey, ServerEndpoint);
+                await WireGuardTunnelManager.SetRouteAllTrafficAsync(false);
                 await WireGuardTunnelManager.DeactivateTunnelAsync();
                 IsConnected = false;
+                if (File.Exists(SessionFilePath)) File.Delete(SessionFilePath);
 
                 var payload = new
                 {
@@ -167,6 +193,39 @@ namespace CustomVPN.Client
             catch (Exception ex)
             {
                 return (false, $"Reset error: {ex.Message}");
+            }
+        }
+
+        public static async Task<bool> TryRestoreSessionAsync(Action<string>? statusCallback = null)
+        {
+            if (!File.Exists(SessionFilePath)) return false;
+
+            try
+            {
+                var root = JsonDocument.Parse(await File.ReadAllTextAsync(SessionFilePath)).RootElement;
+                CurrentUsername = root.GetProperty("Username").GetString();
+                AssignedIp = root.GetProperty("Ip").GetString();
+                OpenVpnConfigText = root.GetProperty("ConfigText").GetString();
+                RouteAllTraffic = root.GetProperty("RouteAll").GetBoolean();
+                ServerPublicKey = root.GetProperty("ServerPubKey").GetString() ?? "";
+                ServerEndpoint = root.GetProperty("ServerEp").GetString() ?? "";
+                Subnet = root.GetProperty("Sub").GetString() ?? "";
+                ServerUrl = root.GetProperty("Url").GetString() ?? "https://resolvia.cc.cd";
+
+                statusCallback?.Invoke("Restoring VPN session...");
+                bool tunnelOk = await WireGuardTunnelManager.ActivateTunnelAsync(
+                    OpenVpnConfigText,
+                    RouteAllTraffic,
+                    statusCallback
+                );
+
+                IsConnected = tunnelOk;
+                return tunnelOk;
+            }
+            catch
+            {
+                if (File.Exists(SessionFilePath)) File.Delete(SessionFilePath);
+                return false;
             }
         }
     }

@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
 
     // Only allow clearing if the device matches
     if (user.session.deviceId === deviceId) {
+      if (user.session.publicKey) {
+        await removePeerFromWireGuard(user.session.publicKey);
+      }
       await prisma.session.delete({
         where: { userId: user.id },
       });

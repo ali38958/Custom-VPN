@@ -59,13 +59,19 @@ export async function GET(req: NextRequest) {
     };
 
     return NextResponse.json({
-      peers: (peers as PeerRecord[]).map((p: PeerRecord) => ({
-        id: p.id,
-        username: p.username,
-        ip: p.assignedIp,
-        deviceName: p.session?.deviceName || "Unknown",
-        isOnline: p.session?.isOnline || false,
-      })),
+      peers: (peers as PeerRecord[]).map((p: PeerRecord) => {
+        const isRecentlySeen = p.session?.lastSeenAt 
+          ? (new Date().getTime() - new Date(p.session.lastSeenAt).getTime() < 30000) 
+          : false;
+
+        return {
+          id: p.id,
+          username: p.username,
+          ip: p.assignedIp,
+          deviceName: p.session?.deviceName || "Unknown",
+          isOnline: isRecentlySeen,
+        };
+      }),
     });
   } catch (error) {
     console.error("Peers fetch error:", error);

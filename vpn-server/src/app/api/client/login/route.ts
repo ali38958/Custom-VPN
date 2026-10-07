@@ -68,7 +68,10 @@ export async function POST(req: NextRequest) {
         clientPublicKey = "mock_pub_key";
       }
 
-      const { addPeerToWireGuard } = require("@/lib/wg-agent");
+      const { addPeerToWireGuard, removePeerFromWireGuard } = require("@/lib/wg-agent");
+      if (user.session?.publicKey && user.session.publicKey !== clientPublicKey) {
+        await removePeerFromWireGuard(user.session.publicKey);
+      }
       if (user.assignedIp) {
         await addPeerToWireGuard(clientPublicKey, user.assignedIp);
       }
@@ -82,14 +85,13 @@ export async function POST(req: NextRequest) {
 
       const wgConfigText = `[Interface]
 PrivateKey = ${clientPrivateKey}
-Address = ${user.assignedIp}/32
-DNS = 1.1.1.1, 8.8.8.8
+Address = ${user.assignedIp}/24
 
 [Peer]
 PublicKey = ${serverPublicKey}
 Endpoint = 144.24.25.135:51820
 AllowedIPs = ${user.network?.subnet || "10.77.0.0/24"}
-PersistentKeepalive = 25
+PersistentKeepalive = 10
 `;
 
     return NextResponse.json({

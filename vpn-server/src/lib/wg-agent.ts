@@ -15,9 +15,9 @@ export async function addPeerToWireGuard(publicKey: string, assignedIp: string):
   }
 
   try {
-    const cmd = `sudo wg set ${WG_INTERFACE} peer "${publicKey}" allowed-ips "${assignedIp}/32"`;
+    const cmd = `sudo wg set ${WG_INTERFACE} peer "${publicKey}" allowed-ips "${assignedIp}/32" persistent-keepalive 10`;
     await execAsync(cmd);
-    console.log(`[wg] Successfully registered peer ${publicKey} -> ${assignedIp}/32 on ${WG_INTERFACE}`);
+    console.log(`[wg] Successfully registered peer ${publicKey} -> ${assignedIp}/32 (keepalive 10s) on ${WG_INTERFACE}`);
     return true;
   } catch (err) {
     console.error(`[wg] Failed to add peer to WireGuard:`, err);

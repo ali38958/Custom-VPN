@@ -40,6 +40,45 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="LoginButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="#1E293B" CornerRadius="10">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Ellipse Width="6" Height="6" Fill="#94A3B8" Margin="2" x:Name="Dot1"/>
+                                        <Ellipse Width="6" Height="6" Fill="#94A3B8" Margin="2" x:Name="Dot2"/>
+                                        <Ellipse Width="6" Height="6" Fill="#94A3B8" Margin="2" x:Name="Dot3"/>
+                                    </StackPanel>
+                                    <Border.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetName="Dot1" Storyboard.TargetProperty="Opacity" From="0.3" To="1" Duration="0:0:0.4" AutoReverse="True" />
+                                                    <DoubleAnimation Storyboard.TargetName="Dot2" Storyboard.TargetProperty="Opacity" From="0.3" To="1" Duration="0:0:0.4" AutoReverse="True" BeginTime="0:0:0.2"/>
+                                                    <DoubleAnimation Storyboard.TargetName="Dot3" Storyboard.TargetProperty="Opacity" From="0.3" To="1" Duration="0:0:0.4" AutoReverse="True" BeginTime="0:0:0.4"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Border.Triggers>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -49,7 +88,7 @@
                 <Ellipse Width="350" Height="350" Canvas.Left="-50" Canvas.Top="-50">
                     <Ellipse.Fill>
                         <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
-                            <GradientStop Color="#1506B6D4" Offset="0"/>
+                            <GradientStop Color="#3006B6D4" Offset="0"/>
                             <GradientStop Color="#00000000" Offset="1"/>
                         </RadialGradientBrush>
                     </Ellipse.Fill>
@@ -57,7 +96,7 @@
                 <Ellipse Width="350" Height="350" Canvas.Right="-50" Canvas.Bottom="-50">
                     <Ellipse.Fill>
                         <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
-                            <GradientStop Color="#1510B981" Offset="0"/>
+                            <GradientStop Color="#3010B981" Offset="0"/>
                             <GradientStop Color="#00000000" Offset="1"/>
                         </RadialGradientBrush>
                     </Ellipse.Fill>
@@ -73,7 +112,7 @@
                 </Border>
                 <StackPanel Margin="12,0,0,0">
                     <TextBlock Text="Custom VPN" FontWeight="Bold" FontSize="16" Foreground="#F8FAFC"/>
-                    <TextBlock x:Name="TxtServerEndpoint" Text="Target: https://PrivateNet" FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock x:Name="TxtServerEndpoint" Text="Target: https://resolvia.cc.cd" FontSize="11" Foreground="#94A3B8"/>
                 </StackPanel>
             </StackPanel>
 
@@ -89,25 +128,23 @@
         </Grid>
 
         <!-- LOGIN VIEW -->
-        <Border x:Name="PanelLogin" Margin="0,70,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" Width="400" Background="#0F172A" CornerRadius="16" BorderBrush="#1E293B" BorderThickness="1" Padding="32">
+        <Border x:Name="PanelLogin" Margin="0,70,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420" MinWidth="320" Background="#0F172A" CornerRadius="16" BorderBrush="#1E293B" BorderThickness="1" Padding="32">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.3" Color="Black"/>
+            </Border.Effect>
             <StackPanel>
                 <TextBlock Text="Client Device Authentication" FontWeight="Bold" FontSize="18" Foreground="#F1F5F9" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                 <TextBlock Text="Locked 1:1 hardware session bound to this PC" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,0,0,24"/>
 
                 <TextBlock Text="Username" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                <TextBox x:Name="TxtUsername" Padding="10,8" Background="#020617" Foreground="#F8FAFC" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,16"/>
+                <TextBox x:Name="TxtUsername" KeyDown="LoginField_KeyDown" Padding="10,8" Background="#020617" Foreground="#F8FAFC" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,16"/>
 
                 <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                <PasswordBox x:Name="TxtPassword" Padding="10,8" Background="#020617" Foreground="#F8FAFC" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,20"/>
+                <PasswordBox x:Name="TxtPassword" KeyDown="LoginField_KeyDown" Padding="10,8" Background="#020617" Foreground="#F8FAFC" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,20"/>
 
                 <TextBlock x:Name="TxtLoginError" Text="" Foreground="#F87171" FontSize="11" Margin="0,0,0,12" TextWrapping="Wrap" Visibility="Collapsed"/>
 
-                <Button x:Name="BtnLogin" Content="Establish VPN Session" Padding="0,12" Background="#06B6D4" Foreground="#020617" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnLogin_Click">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="10"/>
-                        </Style>
-                    </Button.Resources>
+                <Button x:Name="BtnLogin" Content="Establish VPN Session" Width="260" Padding="0,12" Background="#06B6D4" Foreground="#020617" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnLogin_Click" Style="{StaticResource LoginButtonStyle}">
                 </Button>
 
                 <Button x:Name="BtnResetDeviceLock" Content="Lost Device? Reset Lock" Margin="0,14,0,0" Background="Transparent" Foreground="#38BDF8" BorderThickness="0" FontSize="11" Cursor="Hand" Click="BtnResetDeviceLock_Click"/>
@@ -117,7 +154,7 @@
         <!-- DASHBOARD VIEW -->
         <Grid x:Name="PanelDashboard" Margin="24,70,24,20" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"/>
+                <ColumnDefinition MinWidth="260" MaxWidth="320" Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -127,7 +164,7 @@
                     <TextBlock Text="VPN Status" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8"/>
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,20">
                         <Border x:Name="StatusDot" Width="10" Height="10" CornerRadius="5" Background="#10B981" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TxtStatus" Text="CONNECTED" FontWeight="Bold" FontSize="13" Foreground="#10B981" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtStatus" Text="CONNECTED" TextWrapping="Wrap" FontWeight="Bold" FontSize="13" Foreground="#10B981" Margin="8,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
 
                     <TextBlock Text="Virtual Assigned IP" FontSize="11" Foreground="#64748B"/>
@@ -192,8 +229,31 @@
 
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Ip}" FontSize="12" FontWeight="SemiBold" Foreground="#38BDF8" Margin="0,0,12,0" VerticalAlignment="Center" FontFamily="Consolas"/>
-                                            <Border Background="#065F46" CornerRadius="6" Padding="8,4">
-                                                <TextBlock Text="ONLINE" FontSize="9" FontWeight="Bold" Foreground="#34D399"/>
+                                            <Border CornerRadius="6" Padding="8,4">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#065F46"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsOnline}" Value="False">
+                                                                <Setter Property="Background" Value="#450A0A"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock FontSize="9" FontWeight="Bold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="ONLINE"/>
+                                                            <Setter Property="Foreground" Value="#34D399"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsOnline}" Value="False">
+                                                                    <Setter Property="Text" Value="OFFLINE"/>
+                                                                    <Setter Property="Foreground" Value="#F87171"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
                                             </Border>
                                         </StackPanel>
                                     </Grid>
