@@ -7,7 +7,7 @@ import { ShieldAlert, Lock, User, ArrowRight, AlertCircle, Loader2, KeyRound } f
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("BOwnerNo1");
+  const [username, setUsername] = useState("Knight");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,7 @@ export default function LoginPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="BOwnerNo1"
+                  placeholder="Knight"
                   className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-mono"
                 />
               </div>

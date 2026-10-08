@@ -34,7 +34,7 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 12px; border: 1px solid #1e293b;">
         <h2 style="color: #38bdf8; margin-bottom: 16px;">Custom VPN Admin Password Reset</h2>
         <p style="color: #94a3b8; font-size: 15px; line-height: 1.5;">
-          A password reset was requested for your administrator account (<strong>BOwnerNo1</strong>).
+          A password reset was requested for your administrator account (<strong>Knight</strong>).
         </p>
         <div style="margin: 28px 0;">
           <a href="${resetLink}" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">

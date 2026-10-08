@@ -20,9 +20,9 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hashPassword(password);
 
-    // Update single admin BOwnerNo1 password
+    // Update single admin Knight password
     await prisma.admin.update({
-      where: { username: "BOwnerNo1" },
+      where: { username: "Knight" },
       data: { passwordHash },
     });
 

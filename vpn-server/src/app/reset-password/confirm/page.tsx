@@ -72,7 +72,7 @@ function ConfirmResetContent() {
     <div className="w-full max-w-md">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Create New Password</h1>
-        <p className="text-sm text-zinc-400 mt-1">Set a fresh security key for BOwnerNo1</p>
+        <p className="text-sm text-zinc-400 mt-1">Set a fresh security key for Knight</p>
       </div>
 
       <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">

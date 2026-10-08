@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const existing = await prisma.admin.findUnique({
-    where: { username: "BOwnerNo1" },
+    where: { username: "Knight" },
   });
 
   const passwordHash = await bcrypt.hash("passwordowner1", 10);
@@ -13,14 +13,14 @@ async function main() {
   if (!existing) {
     await prisma.admin.create({
       data: {
-        username: "BOwnerNo1",
+        username: "Knight",
         passwordHash,
         email: process.env.ADMIN_EMAIL || "owner@example.com",
       },
     });
-    console.log("Seeded default admin: BOwnerNo1");
+    console.log("Seeded default admin: Knight");
   } else {
-    console.log("Admin BOwnerNo1 already exists.");
+    console.log("Admin Knight already exists.");
   }
 
   // Create default network if none exists

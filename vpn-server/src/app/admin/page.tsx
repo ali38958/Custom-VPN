@@ -224,7 +224,7 @@ export default function AdminDashboardPage() {
                 <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
                   Admin Command Core
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                    BOwnerNo1
+                    Knight
                   </span>
                 </h1>
                 <p className="text-xs text-zinc-400 mt-0.5 font-mono">

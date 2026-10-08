@@ -9,7 +9,7 @@ generator client {
 
 model Admin {
   id           Int      @id @default(autoincrement())
-  username     String   @unique @default("BOwnerNo1")
+  username     String   @unique @default("Knight")
   passwordHash String   @map("password_hash")
   email        String?  // For password reset via Google app password
   createdAt    DateTime @default(now()) @map("created_at")
