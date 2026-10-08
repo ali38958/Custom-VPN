@@ -57,70 +57,78 @@ function ConfirmResetContent() {
 
   if (!token) {
     return (
-      <div className="text-center p-6 bg-zinc-900 border border-zinc-800 rounded-3xl">
-        <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
-        <h2 className="text-lg font-bold text-zinc-100">Invalid Link</h2>
-        <p className="text-xs text-zinc-400 mt-1 mb-4">No reset token provided or the link is broken.</p>
-        <Link href="/login" className="text-xs text-cyan-400 hover:underline">
-          Return to Login
+      <div className="w-full max-w-[400px] text-center p-6 pn-card shadow-lg">
+        <AlertCircle className="w-10 h-10 text-[var(--danger)] mx-auto mb-3" />
+        <h2 className="text-base font-semibold text-[var(--text-primary)]">Invalid Link</h2>
+        <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">No reset token provided or the link is broken.</p>
+        <Link href="/login" className="pn-btn pn-btn-primary justify-center w-full">
+          Return to Sign In
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-md">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Create New Password</h1>
-        <p className="text-sm text-zinc-400 mt-1">Set a fresh security key for Knight</p>
+    <div className="w-full max-w-[400px]">
+      <div className="text-center mb-7">
+        <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+          Create New Password
+        </h1>
+        <p className="text-[13.5px] text-[var(--text-secondary)] mt-1.5">
+          Set a fresh security key for Knight
+        </p>
       </div>
 
-      <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+      <div className="pn-card p-6 sm:p-7 shadow-lg">
         {success ? (
-          <div className="text-center py-4">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-zinc-100">Password Changed</h3>
-            <p className="text-xs text-zinc-400 mt-1">Redirecting to login with your new credentials...</p>
+          <div className="text-center py-2">
+            <CheckCircle2 className="w-11 h-11 text-[var(--success)] mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-[var(--text-primary)]">Password Changed</h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-1.5 mb-2">Redirecting to login with your new credentials...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-lg bg-[var(--danger-soft)] border border-[var(--danger-border)] text-[var(--danger-text)] text-xs flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-[var(--danger)] shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+              <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
                 New Password
               </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-[var(--text-muted)] pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </span>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg pl-9 pr-3.5 py-2.5 outline-none focus:border-[var(--accent)] font-mono"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+              <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
                 Confirm New Password
               </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-[var(--text-muted)] pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </span>
                 <input
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg pl-9 pr-3.5 py-2.5 outline-none focus:border-[var(--accent)] font-mono"
                 />
               </div>
             </div>
@@ -128,7 +136,7 @@ function ConfirmResetContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 font-medium text-sm py-2.5 px-3.5 rounded-lg border-none bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white cursor-pointer inline-flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-sm"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -148,8 +156,8 @@ function ConfirmResetContent() {
 
 export default function ConfirmResetPage() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <Suspense fallback={<div className="text-zinc-500 text-sm">Loading...</div>}>
+    <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
+      <Suspense fallback={<div className="text-[var(--text-muted)] text-sm">Loading...</div>}>
         <ConfirmResetContent />
       </Suspense>
     </div>

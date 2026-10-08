@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PrivateNet — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --border: #E5E7EB;
+            --border-strong: #D1D5DB;
+            --text-primary: #111827;
+            --text-secondary: #4B5563;
+            --text-muted: #9CA3AF;
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+            --accent-soft: #EFF6FF;
+            --success: #059669;
+            --success-soft: #ECFDF5;
+            --danger: #DC2626;
+            --danger-soft: #FEF2F2;
+            --sidebar-bg: #FFFFFF;
+            --sidebar-active: #F3F4F6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ---------- Layout ---------- */
+        .app {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 8px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--text-primary);
+            color: white;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .brand-name {
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px 10px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .nav-item:hover {
+            background: var(--sidebar-active);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--sidebar-active);
+            color: var(--text-primary);
+        }
+
+        .nav-item svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+
+        .nav-item.active svg {
+            opacity: 1;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .user-chip:hover {
+            background: var(--sidebar-active);
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ---------- Main ---------- */
+        .main {
+            padding: 32px 40px 60px;
+            max-width: 1280px;
+            width: 100%;
+        }
+
+        /* ---------- Page header ---------- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            margin-top: 4px;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ---------- Buttons ---------- */
+        .btn {
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.12s, border-color 0.12s, color 0.12s;
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--sidebar-active);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+        }
+
+        .btn-ghost:hover {
+            background: var(--sidebar-active);
+            color: var(--text-primary);
+        }
+
+        .btn-danger-text {
+            background: transparent;
+            color: var(--danger);
+            padding: 6px 10px;
+        }
+
+        .btn-danger-text:hover {
+            background: var(--danger-soft);
+        }
+
+        /* ---------- Alert ---------- */
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            margin-bottom: 24px;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background: var(--success-soft);
+            border-color: #A7F3D0;
+            color: #065F46;
+        }
+
+        .alert svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .alert-close {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #065F46;
+            opacity: 0.6;
+            padding: 0 4px;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        /* ---------- Stat cards ---------- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .stat-meta {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* ---------- Section ---------- */
+        .section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .section-subtitle {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--sidebar-active);
+            color: var(--text-primary);
+        }
+
+        .icon-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ---------- Table ---------- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px 20px;
+            background: #FCFCFD;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13.5px;
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #FAFAFB;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .cell-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #F3F4F6;
+            color: var(--text-secondary);
+            display: grid;
+            place-items: center;
+            font-size: 10.5px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        /* ---------- Badges ---------- */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .badge-success {
+            background: var(--success-soft);
+            color: #065F46;
+        }
+
+        .badge-success .badge-dot {
+            background: var(--success);
+        }
+
+        .badge-neutral {
+            background: #F3F4F6;
+            color: var(--text-secondary);
+        }
+
+        .badge-neutral .badge-dot {
+            background: var(--text-muted);
+        }
+
+        .actions {
+            display: flex;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+
+        /* ---------- Footer ---------- */
+        .page-footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .page-footer span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-footer .dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 860px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                height: auto;
+                flex-direction: row;
+                align-items: center;
+                padding: 12px 16px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                overflow-x: auto;
+            }
+
+            .brand {
+                border: none;
+                margin: 0;
+                padding: 0 16px 0 0;
+            }
+
+            .nav {
+                flex-direction: row;
+                flex: 1;
+                gap: 4px;
+            }
+
+            .nav-label {
+                display: none;
+            }
+
+            .sidebar-footer {
+                border: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .user-name,
+            .user-role {
+                display: none;
+            }
+
+            .main {
+                padding: 24px 20px 48px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            thead th,
+            tbody td {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">PN</div>
+                <div>
+                    <div class="brand-name">PrivateNet</div>
+                    <div class="brand-sub">Admin Console</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <div class="nav-label">Manage</div>
+                <a class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Overview
+                </a>
+                <a class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path
+                            d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    Networks
+                </a>
+                <a class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    Users
+                </a>
+                <a class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    Device Locks
+                </a>
+
+                <div class="nav-label">System</div>
+                <a class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    Settings
+                </a>
+                <a class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                    </svg>
+                    Logs
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-chip">
+                    <div class="avatar">A</div>
+                    <div>
+                        <div class="user-name">admin</div>
+                        <div class="user-role">Root Authority</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN ================= -->
+        <main class="main">
+
+            <!-- Page header -->
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Admin Overview</h1>
+                    <p class="page-subtitle">Manage VPN networks, authorized clients, and device locks.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path
+                                d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                        Create Network
+                    </button>
+                    <button class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Add User
+                    </button>
+                </div>
+            </header>
+
+            <!-- Success alert -->
+            <div class="alert alert-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <path d="M22 4L12 14.01l-3-3" />
+                </svg>
+                <span>User <strong>vpn_004</strong> created successfully.</span>
+                <button class="alert-close" aria-label="Dismiss">×</button>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Default Network</div>
+                    <div class="stat-value">10.77.0.0/24</div>
+                    <div class="stat-meta">Primary VPN network subnet</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Clients</div>
+                    <div class="stat-value">4</div>
+                    <div class="stat-meta">1:1 device lock enforced per user</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Device Locks</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-meta">No bound devices currently</div>
+                </div>
+            </div>
+
+            <!-- Clients table -->
+            <section class="section">
+                <div class="section-header">
+                    <div>
+                        <div class="section-title">Authorized Clients &amp; Device Locks</div>
+                        <div class="section-subtitle">Strict 1:1 single-device concurrent lock enforced per user.</div>
+                    </div>
+                    <button class="icon-btn" aria-label="Refresh">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 4v6h-6M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                        </svg>
+                    </button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User / Identity</th>
+                            <th>Virtual IP</th>
+                            <th>Subnet</th>
+                            <th>Device Lock</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="cell-user">
+                                    <div class="user-dot">04</div>
+                                    <span>vpn_004</span>
+                                </div>
+                            </td>
+                            <td class="mono">10.77.0.5</td>
+                            <td class="muted">Default Network</td>
+                            <td>
+                                <span class="badge badge-neutral"><span class="badge-dot"></span>None</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-success"><span class="badge-dot"></span>Active</span>
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn btn-ghost">Disable</button>
+                                    <button class="btn btn-danger-text">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="cell-user">
+                                    <div class="user-dot">03</div>
+                                    <span>vpn_003</span>
+                                </div>
+                            </td>
+                            <td class="mono">10.77.0.4</td>
+                            <td class="muted">Default Network</td>
+                            <td><span class="badge badge-neutral"><span class="badge-dot"></span>None</span></td>
+                            <td><span class="badge badge-success"><span class="badge-dot"></span>Active</span></td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn btn-ghost">Disable</button>
+                                    <button class="btn btn-danger-text">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="cell-user">
+                                    <div class="user-dot">02</div>
+                                    <span>vpn_002</span>
+                                </div>
+                            </td>
+                            <td class="mono">10.77.0.3</td>
+                            <td class="muted">Default Network</td>
+                            <td><span class="badge badge-neutral"><span class="badge-dot"></span>None</span></td>
+                            <td><span class="badge badge-success"><span class="badge-dot"></span>Active</span></td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn btn-ghost">Disable</button>
+                                    <button class="btn btn-danger-text">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="cell-user">
+                                    <div class="user-dot">01</div>
+                                    <span>vpn_001</span>
+                                </div>
+                            </td>
+                            <td class="mono">10.77.0.2</td>
+                            <td class="muted">Default Network</td>
+                            <td><span class="badge badge-neutral"><span class="badge-dot"></span>None</span></td>
+                            <td><span class="badge badge-success"><span class="badge-dot"></span>Active</span></td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn btn-ghost">Disable</button>
+                                    <button class="btn btn-danger-text">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Footer -->
+            <footer class="page-footer">
+                <span>PrivateNet Server · Node 01</span>
+                <span class="dot"></span>
+                <span>OpenVPN Virtual Subnet <span class="mono">10.8.0.0/24</span></span>
+                <span class="dot"></span>
+                <span>v2.4.1</span>
+            </footer>
+
+        </main>
+    </div>
+</body>
+
+</html>

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PrivateNet — Encrypted Virtual Network",
-  description: "Self-hosted OpenVPN private network for seamless peer-to-peer connectivity and high-speed file transfer.",
+  description: "Self-hosted private VPN network with single-device concurrent lock and high-speed peer tunneling.",
 };
 
 export default function RootLayout({
@@ -26,13 +26,35 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-cyan-500/20 selection:text-cyan-300">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('pn-theme');
+                  if (saved === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  }
+                } catch (e) {
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--text-primary)] selection:bg-[var(--accent)]/20 selection:text-[var(--accent)]">
         <Navbar />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
-          <p>PrivateNet Server &bull; Node &bull; OpenVPN Virtual Subnet 10.8.0.0/24 &bull; PrivateNet</p>
+        <footer className="border-t border-[var(--border)] py-6 text-center text-xs text-[var(--text-muted)] bg-[var(--card-bg)]">
+          <p>PrivateNet Server &bull; Node 01 &bull; WireGuard Virtual Subnet 10.77.0.0/24 &bull; v2.4.1</p>
         </footer>
       </body>
     </html>

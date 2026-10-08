@@ -36,58 +36,66 @@ export default function RequestResetPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 p-3 shadow-xl mb-4 text-cyan-400">
-            <KeyRound className="w-full h-full" />
+    <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
+      <div className="w-full max-w-[400px]">
+        {/* Header */}
+        <div className="text-center mb-7">
+          <div className="w-11 h-11 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center mx-auto mb-4 border border-[var(--accent)]/20 shadow-sm">
+            <KeyRound className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">Reset Password</h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Send a recovery link to the registered admin email
+          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+            Reset Password
+          </h1>
+          <p className="text-[13.5px] text-[var(--text-secondary)] mt-1.5">
+            Send a recovery link to the registered admin email.
           </p>
         </div>
 
-        <div className="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+        {/* Card */}
+        <div className="pn-card p-6 sm:p-7 shadow-lg">
           {submitted ? (
-            <div className="text-center py-4">
-              <div className="w-12 h-12 bg-emerald-950/60 border border-emerald-800/60 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-400">
-                <CheckCircle2 className="w-6 h-6" />
+            <div className="text-center py-2">
+              <div className="w-11 h-11 bg-[var(--success-soft)] border border-[var(--success-border)] rounded-full flex items-center justify-center mx-auto mb-3.5 text-[var(--success-text)]">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-semibold text-zinc-100 mb-2">Check Your Inbox</h3>
-              <p className="text-sm text-zinc-400 mb-6">
-                If the email matches the registered owner address, a reset link has been dispatched via your configured Google App Password.
+              <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1.5">
+                Check Your Inbox
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] mb-6 leading-relaxed">
+                If the email matches the registered administrator address, a reset link has been dispatched.
               </p>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                className="pn-btn pn-btn-primary w-full justify-center"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Return to Login
+                <span>Return to Sign In</span>
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-lg bg-[var(--danger-soft)] border border-[var(--danger-border)] text-[var(--danger-text)] text-xs flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-[var(--danger)] shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
+                <label className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5">
                   Admin Registered Email
                 </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <div className="relative flex items-center">
+                  <span className="absolute left-3 text-[var(--text-muted)] pointer-events-none">
+                    <Mail className="w-4 h-4" />
+                  </span>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="owner@example.com"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-500 transition-colors"
+                    placeholder="admin@example.com"
+                    className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg pl-9 pr-3.5 py-2.5 outline-none focus:border-[var(--accent)] font-mono"
                   />
                 </div>
               </div>
@@ -95,18 +103,18 @@ export default function RequestResetPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full mt-2 font-medium text-sm py-2.5 px-3.5 rounded-lg border-none bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white cursor-pointer inline-flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-sm"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Reset Email"}
               </button>
 
-              <div className="pt-4 text-center">
+              <div className="pt-3 text-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  Back to Sign In
+                  <span>Back to Sign In</span>
                 </Link>
               </div>
             </form>

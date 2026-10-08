@@ -1,123 +1,122 @@
-import Link from "next/link";
-import { Download, Shield, Monitor, FileCode, CheckCircle, ExternalLink } from "lucide-react";
+import { Download, Shield, Monitor, CheckCircle, ExternalLink } from "lucide-react";
 
 export default function DownloadsPage() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-      <div className="text-center max-w-2xl mx-auto space-y-3">
-        <h1 className="text-3xl font-extrabold tracking-tight text-zinc-100">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+      <div className="text-center max-w-2xl mx-auto space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
           Client Downloads &amp; Setup
         </h1>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-[var(--text-secondary)]">
           Install the client utility to establish encrypted tunnels, discover mesh peers, and transfer files.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Main Client App Card */}
-        <div className="p-8 rounded-3xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-xl flex flex-col justify-between space-y-6">
+        <div className="pn-card p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-sm">
           <div className="space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-950 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
-              <Monitor className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-xl bg-[var(--accent-soft)] border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
+              <Monitor className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-100">PrivateNet for Windows</h2>
-              <span className="text-xs font-mono text-cyan-400">v1.0.0 &bull; Windows 10/11 x64</span>
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">Custom VPN for Windows</h2>
+              <span className="text-xs font-mono text-[var(--accent)]">.NET 10 &bull; Windows 10/11 x64</span>
             </div>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              WPF desktop application paired with an unprivileged helper service. Generates configuration locally and automatically handles OpenVPN routing.
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              WPF desktop client paired with WireGuard engine. Automatically configures on-link network routing, device lock validation, and split/full-tunneling.
             </p>
 
-            <div className="space-y-2 text-xs text-zinc-400 pt-2">
+            <div className="space-y-2 text-xs text-[var(--text-secondary)] pt-1">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>One-click one-time code enrollment</span>
+                <CheckCircle className="w-4 h-4 text-[var(--success)]" />
+                <span>Single-device concurrent hardware lock</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>Direct peer-to-peer file transfer engine</span>
+                <CheckCircle className="w-4 h-4 text-[var(--success)]" />
+                <span>P2P direct chunked file streaming</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400" />
-                <span>System tray status and quick connect</span>
+                <CheckCircle className="w-4 h-4 text-[var(--success)]" />
+                <span>Full-tunnel internet toggle or split-subnet</span>
               </div>
             </div>
           </div>
 
           <a
             href="/api/client/latest"
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2"
+            className="pn-btn pn-btn-primary w-full justify-center py-2.5 text-sm"
           >
             <Download className="w-4 h-4" />
-            <span>Download Installer (.exe)</span>
+            <span>Download Client (.exe)</span>
           </a>
         </div>
 
-        {/* Prerequisites & Manual OpenVPN */}
-        <div className="p-8 rounded-3xl bg-zinc-900/60 border border-zinc-800 backdrop-blur-xl flex flex-col justify-between space-y-6">
+        {/* Prerequisites & WireGuard */}
+        <div className="pn-card p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-sm">
           <div className="space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-800/60 flex items-center justify-center text-emerald-400">
-              <Shield className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-xl bg-[var(--success-soft)] border border-[var(--success-border)] flex items-center justify-center text-[var(--success-text)]">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-100">Prerequisite: OpenVPN TAP</h2>
-              <span className="text-xs font-mono text-emerald-400">Official Windows Driver</span>
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">WireGuard Engine</h2>
+              <span className="text-xs font-mono text-[var(--success-text)]">Official Driver</span>
             </div>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              PrivateNet utilizes the official OpenVPN TAP driver for high throughput and optimal compatibility. Please ensure the OpenVPN package is installed.
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              Custom VPN leverages the official WireGuard for Windows service and WinTun driver for ultra-low latency and maximum network throughput.
             </p>
 
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-400 space-y-1">
-              <div className="font-semibold text-zinc-200">Alternative / Linux &amp; Mobile:</div>
+            <div className="p-3.5 rounded-lg bg-[var(--sidebar-active)] border border-[var(--border)] text-xs text-[var(--text-secondary)] space-y-1">
+              <div className="font-semibold text-[var(--text-primary)]">Automatic Auto-Install:</div>
               <p>
-                Linux, macOS, and iOS/Android users can run standard OpenVPN configurations with custom client profiles upon request.
+                The client auto-downloads and installs the WireGuard engine seamlessly if it is not already present on your PC.
               </p>
             </div>
           </div>
 
           <a
-            href="https://openvpn.net/community-downloads/"
+            href="https://www.wireguard.com/install/"
             target="_blank"
             rel="noreferrer"
-            className="w-full py-3.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+            className="pn-btn pn-btn-secondary w-full justify-center py-2.5 text-sm"
           >
-            <span>Official OpenVPN Downloads</span>
+            <span>Official WireGuard Site</span>
             <ExternalLink className="w-4 h-4" />
           </a>
         </div>
       </div>
 
       {/* 3 Steps Guide */}
-      <div className="p-8 rounded-3xl bg-zinc-900/30 border border-zinc-800 space-y-6">
-        <h3 className="text-lg font-bold text-zinc-100">Setup Walkthrough</h3>
+      <div className="pn-card p-6 sm:p-7 space-y-5 shadow-sm">
+        <h3 className="text-base font-bold text-[var(--text-primary)]">Setup Walkthrough</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-zinc-800 text-cyan-400 font-bold text-sm flex items-center justify-center">
+          <div className="space-y-1.5">
+            <div className="w-7 h-7 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] font-bold text-xs flex items-center justify-center font-mono">
               1
             </div>
-            <h4 className="font-semibold text-sm text-zinc-200">Register Device</h4>
-            <p className="text-xs text-zinc-400">
-              Go to your portal dashboard and click &ldquo;Add New Device&rdquo; to generate a 15-minute enrollment ticket.
+            <h4 className="font-semibold text-xs sm:text-sm text-[var(--text-primary)]">Sign In as Admin</h4>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Log into the Admin Console to register user accounts and assign dedicated virtual IPs in the 10.77.0.0/24 subnet.
             </p>
           </div>
 
-          <div className="space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-zinc-800 text-cyan-400 font-bold text-sm flex items-center justify-center">
+          <div className="space-y-1.5">
+            <div className="w-7 h-7 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] font-bold text-xs flex items-center justify-center font-mono">
               2
             </div>
-            <h4 className="font-semibold text-sm text-zinc-200">Enter Code in App</h4>
-            <p className="text-xs text-zinc-400">
-              Launch PrivateNet and enter your code. The client generates your private key locally and sends only the public key to the portal.
+            <h4 className="font-semibold text-xs sm:text-sm text-[var(--text-primary)]">Launch CustomVPN App</h4>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Run `CustomVPN.exe` as Administrator, enter user credentials, and click Establish VPN Session.
             </p>
           </div>
 
-          <div className="space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-zinc-800 text-cyan-400 font-bold text-sm flex items-center justify-center">
+          <div className="space-y-1.5">
+            <div className="w-7 h-7 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] font-bold text-xs flex items-center justify-center font-mono">
               3
             </div>
-            <h4 className="font-semibold text-sm text-zinc-200">Connect &amp; Share</h4>
-            <p className="text-xs text-zinc-400">
-              Click Connect! You are now in the encrypted mesh network. Send files by dragging them onto any online peer.
+            <h4 className="font-semibold text-xs sm:text-sm text-[var(--text-primary)]">Connect &amp; Share</h4>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Tunnel is active! Ping 10.77.0.1, select online peers from the list, and transfer files directly over P2P.
             </p>
           </div>
         </div>

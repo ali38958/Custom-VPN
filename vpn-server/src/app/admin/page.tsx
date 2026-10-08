@@ -3,19 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Users,
-  Network as NetworkIcon,
-  ShieldCheck,
+  Globe,
   Plus,
-  Trash2,
-  KeyRound,
-  LogOut,
   RefreshCw,
   Loader2,
   Laptop,
   CheckCircle2,
-  XCircle,
-  AlertCircle
+  AlertCircle,
+  X,
 } from "lucide-react";
 
 interface UserItem {
@@ -113,7 +108,7 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create user");
 
-      setFeedback({ type: "success", msg: `User ${newUsername} created successfully!` });
+      setFeedback({ type: "success", msg: `User ${newUsername} created successfully.` });
       setShowAddUser(false);
       setNewUsername("");
       setNewPassword("");
@@ -139,7 +134,7 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create network");
 
-      setFeedback({ type: "success", msg: `Network ${netName} established!` });
+      setFeedback({ type: "success", msg: `Network ${netName} established successfully.` });
       setShowAddNetwork(false);
       setNetName("");
       loadData();
@@ -197,349 +192,394 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+      <div className="flex-1 flex items-center justify-center min-h-[60vh] text-[var(--text-secondary)]">
+        <Loader2 className="w-7 h-7 animate-spin text-[var(--accent)]" />
       </div>
     );
   }
 
+  const activeClientsCount = users.filter((u) => !u.disabled).length;
+  const boundSessionsCount = users.filter((u) => u.session != null).length;
+  const primarySubnet = networks.length > 0 ? networks[0].subnet : "10.77.0.0/24";
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6 md:p-10 font-sans">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800/80">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-                <ShieldCheck className="w-6 h-6" />
-              </span>
-              <div>
-                <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
-                  Admin Command Core
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                    Knight
-                  </span>
-                </h1>
-                <p className="text-xs text-zinc-400 mt-0.5 font-mono">
-                  Full Root Authority &bull; SQLite3 Lightweight Engine
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowAddNetwork(true)}
-              className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-zinc-300 text-xs font-semibold flex items-center gap-2 transition-all"
-            >
-              <NetworkIcon className="w-4 h-4 text-cyan-400" />
-              Create Network
-            </button>
-            <button
-              onClick={() => setShowAddUser(true)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-zinc-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:opacity-95 transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              Add User Account
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-red-400 transition-colors"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+    <div className="max-w-[1280px] mx-auto px-5 sm:px-10 py-8 pb-16 w-full">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-7">
+        <div>
+          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+            Admin Overview
+          </h1>
+          <p className="text-[13.5px] text-[var(--text-secondary)] mt-1">
+            Manage VPN networks, authorized clients, and device locks.
+          </p>
         </div>
-
-        {/* Feedback Alert */}
-        {feedback && (
-          <div
-            className={`p-4 rounded-2xl flex items-center gap-3 text-xs ${
-              feedback.type === "success"
-                ? "bg-emerald-950/40 border border-emerald-800/40 text-emerald-300"
-                : "bg-red-950/40 border border-red-800/40 text-red-300"
-            }`}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setShowAddNetwork(true)}
+            className="pn-btn pn-btn-secondary"
           >
-            {feedback.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-            )}
-            <span>{feedback.msg}</span>
-            <button
-              onClick={() => setFeedback(null)}
-              className="ml-auto text-zinc-500 hover:text-zinc-300"
-            >
-              &times;
-            </button>
-          </div>
-        )}
+            <Globe className="w-3.5 h-3.5" />
+            <span>Create Network</span>
+          </button>
+          <button
+            onClick={() => setShowAddUser(true)}
+            className="pn-btn pn-btn-primary"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add User</span>
+          </button>
+        </div>
+      </div>
 
-        {/* Network Nodes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {networks.map((net) => (
-            <div
-              key={net.id}
-              className="p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800/50 text-cyan-400">
-                  {net.subnet}
-                </span>
-                <span className="text-[11px] text-zinc-500 font-mono">
-                  {net.users.length} Clients
-                </span>
-              </div>
-              <h3 className="font-bold text-zinc-200 text-base">{net.name}</h3>
-              <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
-                {net.description || "Active OpenVPN relay network segment"}
-              </p>
-            </div>
-          ))}
+      {/* Feedback Alert */}
+      {feedback && (
+        <div
+          className={`flex items-start gap-2.5 p-3.5 rounded-lg text-[13.5px] mb-6 border ${
+            feedback.type === "success"
+              ? "bg-[var(--success-soft)] border-[var(--success-border)] text-[var(--success-text)]"
+              : "bg-[var(--danger-soft)] border-[var(--danger-border)] text-[var(--danger-text)]"
+          }`}
+        >
+          {feedback.type === "success" ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          )}
+          <span className="flex-1">{feedback.msg}</span>
+          <button
+            onClick={() => setFeedback(null)}
+            className="opacity-70 hover:opacity-100 p-0.5 cursor-pointer ml-auto"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
+        <div className="pn-card p-5">
+          <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">
+            Default Network
+          </div>
+          <div className="font-mono text-xl font-medium text-[var(--text-primary)] tracking-tight">
+            {primarySubnet}
+          </div>
+          <div className="text-[12.5px] text-[var(--text-secondary)] mt-1.5">
+            Primary VPN network subnet
+          </div>
         </div>
 
-        {/* User Management Table */}
-        <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="p-6 border-b border-zinc-800/80 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-zinc-200 flex items-center gap-2">
-                <Users className="w-5 h-5 text-cyan-400" />
-                Authorized Clients & Device Locks
-              </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
-                Strict 1:1 single-device concurrent lock enforced per user
-              </p>
-            </div>
-            <button
-              onClick={loadData}
-              className="p-2 rounded-xl bg-zinc-850 hover:bg-zinc-800 text-zinc-400 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
+        <div className="pn-card p-5">
+          <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">
+            Active Clients
           </div>
+          <div className="font-mono text-xl font-medium text-[var(--text-primary)] tracking-tight">
+            {activeClientsCount}
+          </div>
+          <div className="text-[12.5px] text-[var(--text-secondary)] mt-1.5">
+            1:1 device lock enforced per user
+          </div>
+        </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-zinc-800/80 text-zinc-400 font-mono uppercase tracking-wider text-[11px] bg-zinc-950/40">
-                  <th className="py-4 px-6">User / Identity</th>
-                  <th className="py-4 px-6">Assigned Virtual IP</th>
-                  <th className="py-4 px-6">Subnet</th>
-                  <th className="py-4 px-6">Device Lock / Status</th>
-                  <th className="py-4 px-6">Account Status</th>
-                  <th className="py-4 px-6 text-right">Admin Actions</th>
+        <div className="pn-card p-5">
+          <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-2">
+            Device Locks
+          </div>
+          <div className="font-mono text-xl font-medium text-[var(--text-primary)] tracking-tight">
+            {boundSessionsCount}
+          </div>
+          <div className="text-[12.5px] text-[var(--text-secondary)] mt-1.5">
+            {boundSessionsCount > 0 ? "Hardware sessions actively bound" : "No bound devices currently"}
+          </div>
+        </div>
+      </div>
+
+      {/* Clients & Locks Section */}
+      <section className="pn-card overflow-hidden">
+        <div className="p-5 border-b border-[var(--border)] flex justify-between items-center gap-4">
+          <div>
+            <div className="text-[15px] font-semibold text-[var(--text-primary)] tracking-tight">
+              Authorized Clients &amp; Device Locks
+            </div>
+            <div className="text-[12.5px] text-[var(--text-secondary)] mt-0.5">
+              Strict 1:1 single-device concurrent lock enforced per user.
+            </div>
+          </div>
+          <button
+            onClick={loadData}
+            className="p-1.5 rounded-md border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--sidebar-active)] hover:text-[var(--text-primary)] transition-colors cursor-pointer inline-flex items-center justify-center"
+            title="Refresh"
+            aria-label="Refresh"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left text-[13.5px]">
+            <thead>
+              <tr className="bg-[var(--table-head-bg)] border-b border-[var(--border)] text-[11px] uppercase tracking-wider text-[var(--text-muted)] font-semibold font-mono">
+                <th className="py-3 px-5">User / Identity</th>
+                <th className="py-3 px-5">Virtual IP</th>
+                <th className="py-3 px-5">Subnet</th>
+                <th className="py-3 px-5">Device Lock</th>
+                <th className="py-3 px-5">Status</th>
+                <th className="py-3 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)]">
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-[var(--text-muted)]">
+                    No client accounts registered. Add one using the top button.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/60 font-mono">
-                {users.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-zinc-500">
-                      No user accounts registered. Add one using the top button.
+              ) : (
+                users.map((u, idx) => (
+                  <tr key={u.id} className="hover:bg-[var(--table-hover)] transition-colors">
+                    {/* User Identity */}
+                    <td className="py-3.5 px-5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-[var(--user-dot-bg)] text-[var(--user-dot-text)] flex items-center justify-center text-[11px] font-semibold font-mono">
+                          {String(idx + 1).padStart(2, "0")}
+                        </div>
+                        <span className="font-medium text-[var(--text-primary)]">{u.username}</span>
+                      </div>
                     </td>
-                  </tr>
-                ) : (
-                  users.map((u) => (
-                    <tr key={u.id} className="hover:bg-zinc-850/30 transition-colors">
-                      <td className="py-4 px-6 font-semibold text-zinc-200">
-                        {u.username}
-                      </td>
-                      <td className="py-4 px-6 text-cyan-400 font-bold">
-                        {u.assignedIp || "Unassigned"}
-                      </td>
-                      <td className="py-4 px-6 text-zinc-400">
-                        {u.network?.name || "None"}
-                      </td>
-                      <td className="py-4 px-6">
-                        {u.session ? (
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span className="text-zinc-300 flex items-center gap-1">
-                              <Laptop className="w-3.5 h-3.5 text-zinc-500" />
-                              {u.session.deviceName || u.session.deviceId.substring(0, 8)}
-                            </span>
-                            <button
-                              onClick={() => clearUserSession(u)}
-                              className="ml-2 text-[10px] text-amber-400 hover:text-amber-300 underline font-sans"
-                            >
-                              Release Lock
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-zinc-600">No Device Bound</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-6">
-                        {u.disabled ? (
-                          <span className="px-2 py-0.5 rounded-full bg-red-950/60 border border-red-800/60 text-red-400 text-[10px]">
-                            Disabled
+
+                    {/* Virtual IP */}
+                    <td className="py-3.5 px-5 font-mono text-[13px] text-[var(--text-primary)]">
+                      {u.assignedIp || "Unassigned"}
+                    </td>
+
+                    {/* Subnet */}
+                    <td className="py-3.5 px-5 text-[var(--text-secondary)]">
+                      {u.network?.name || "Default Network"}
+                    </td>
+
+                    {/* Device Lock */}
+                    <td className="py-3.5 px-5">
+                      {u.session ? (
+                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--success-soft)] text-[var(--success-text)] border border-[var(--success-border)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse"></span>
+                            <Laptop className="w-3 h-3 opacity-70" />
+                            {u.session.deviceName || u.session.deviceId.substring(0, 8)}
                           </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 text-[10px]">
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 text-right space-x-2 font-sans">
+                          <button
+                            onClick={() => clearUserSession(u)}
+                            className="text-[11px] text-amber-500 hover:underline cursor-pointer ml-1 font-medium"
+                          >
+                            Release
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]"></span>
+                          None
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Account Status */}
+                    <td className="py-3.5 px-5">
+                      {u.disabled ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--danger-soft)] text-[var(--danger-text)] border border-[var(--danger-border)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--danger)]"></span>
+                          Disabled
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--success-soft)] text-[var(--success-text)] border border-[var(--success-border)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]"></span>
+                          Active
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-3.5 px-5 text-right">
+                      <div className="inline-flex items-center gap-1 justify-end">
                         <button
                           onClick={() => toggleUserStatus(u)}
-                          className="px-2.5 py-1 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-zinc-300 text-[11px] font-medium"
+                          className="pn-btn pn-btn-ghost text-xs"
                         >
                           {u.disabled ? "Enable" : "Disable"}
                         </button>
                         <button
                           onClick={() => deleteUser(u)}
-                          className="px-2.5 py-1 rounded-lg bg-red-950/30 hover:bg-red-950/60 border border-red-800/40 text-red-400 text-[11px] font-medium"
+                          className="pn-btn pn-btn-danger-text text-xs"
                         >
                           Delete
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Modal: Add User */}
+      {showAddUser && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-md pn-card p-6 sm:p-7 shadow-2xl">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">
+              Add VPN Client User
+            </h2>
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  placeholder="e.g. vpn_user"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)] font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Initial Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)] font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Assigned Virtual IP
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newAssignedIp}
+                  onChange={(e) => setNewAssignedIp(e.target.value)}
+                  placeholder="10.77.0.2"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)] font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Assign Network
+                </label>
+                <select
+                  value={newNetworkId}
+                  onChange={(e) => setNewNetworkId(e.target.value)}
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)]"
+                >
+                  {networks.map((n) => (
+                    <option key={n.id} value={n.id}>
+                      {n.name} ({n.subnet})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUser(false)}
+                  className="flex-1 pn-btn pn-btn-secondary justify-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 pn-btn pn-btn-primary justify-center"
+                >
+                  Create User
+                </button>
+              </div>
+            </form>
           </div>
         </div>
+      )}
 
-        {/* Modal: Add User */}
-        {showAddUser && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-              <h2 className="text-lg font-bold text-zinc-100 mb-4">Add VPN Client User</h2>
-              <form onSubmit={handleCreateUser} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Username</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="alice"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Initial Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Assigned Virtual IP</label>
-                  <input
-                    type="text"
-                    required
-                    value={newAssignedIp}
-                    onChange={(e) => setNewAssignedIp(e.target.value)}
-                    placeholder="10.77.0.2"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Assign Network</label>
-                  <select
-                    value={newNetworkId}
-                    onChange={(e) => setNewNetworkId(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100"
-                  >
-                    {networks.map((n) => (
-                      <option key={n.id} value={n.id}>
-                        {n.name} ({n.subnet})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddUser(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-cyan-500 text-zinc-950 font-bold text-xs"
-                  >
-                    Create User
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+      {/* Modal: Add Network */}
+      {showAddNetwork && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-md pn-card p-6 sm:p-7 shadow-2xl">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">
+              Create Network Segment
+            </h2>
+            <form onSubmit={handleCreateNetwork} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Network Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={netName}
+                  onChange={(e) => setNetName(e.target.value)}
+                  placeholder="e.g. Secondary VPN"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)]"
+                />
+              </div>
 
-        {/* Modal: Add Network */}
-        {showAddNetwork && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-              <h2 className="text-lg font-bold text-zinc-100 mb-4">Create Network Segment</h2>
-              <form onSubmit={handleCreateNetwork} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Network Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={netName}
-                    onChange={(e) => setNetName(e.target.value)}
-                    placeholder="Finance VPN Subnet"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Subnet Range</label>
-                  <input
-                    type="text"
-                    required
-                    value={netSubnet}
-                    onChange={(e) => setNetSubnet(e.target.value)}
-                    placeholder="10.77.0.0/24"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-400 mb-1">Description</label>
-                  <input
-                    type="text"
-                    value={netDesc}
-                    onChange={(e) => setNetDesc(e.target.value)}
-                    placeholder="Private network segment"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-100"
-                  />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddNetwork(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-cyan-500 text-zinc-950 font-bold text-xs"
-                  >
-                    Create Network
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Subnet Range
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={netSubnet}
+                  onChange={(e) => setNetSubnet(e.target.value)}
+                  placeholder="10.77.0.0/24"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)] font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={netDesc}
+                  onChange={(e) => setNetDesc(e.target.value)}
+                  placeholder="Network segment description"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg px-3 py-2 outline-none focus:border-[var(--accent)]"
+                />
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddNetwork(false)}
+                  className="flex-1 pn-btn pn-btn-secondary justify-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 pn-btn pn-btn-primary justify-center"
+                >
+                  Create Network
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

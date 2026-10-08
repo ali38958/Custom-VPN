@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShieldAlert, Lock, User, ArrowRight, AlertCircle, Loader2, KeyRound } from "lucide-react";
+import { Lock, User, ArrowRight, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("Knight");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -38,97 +39,116 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex w-16 h-16 rounded-3xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-emerald-400 p-0.5 shadow-2xl shadow-cyan-500/30 mb-4 animate-pulse">
-            <div className="w-full h-full bg-zinc-950 rounded-[22px] flex items-center justify-center">
-              <ShieldAlert className="w-8 h-8 text-cyan-400" />
-            </div>
+    <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
+      <div className="w-full max-w-[400px]">
+        {/* Header */}
+        <div className="text-center mb-7">
+          <div className="w-11 h-11 rounded-xl bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center mx-auto mb-4 border border-[var(--accent)]/20 shadow-sm">
+            <Lock className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-            Custom VPN Portal
+          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--text-primary)]">
+            Sign in to Admin Console
           </h1>
-          <p className="text-xs text-zinc-400 mt-2 tracking-wide uppercase font-semibold">
-            Restricted Admin Console &bull; BOwner Access Only
+          <p className="text-[13.5px] text-[var(--text-secondary)] mt-1.5">
+            Restricted access. Authorized administrators only.
           </p>
         </div>
 
-        <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-3xl p-6 sm:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-indigo-500 to-emerald-400"></div>
-
+        {/* Card */}
+        <div className="pn-card p-6 sm:p-7 shadow-lg">
           {error && (
-            <div className="mb-6 p-4 rounded-2xl bg-red-950/40 border border-red-800/50 text-red-300 text-sm flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <div className="mb-5 p-3.5 rounded-lg bg-[var(--danger-soft)] border border-[var(--danger-border)] text-[var(--danger-text)] text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">
-                Admin Username
+              <label
+                htmlFor="username"
+                className="block text-[13px] font-medium text-[var(--text-primary)] mb-1.5"
+              >
+                Username
               </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-[var(--text-muted)] pointer-events-none">
+                  <User className="w-4 h-4" />
+                </span>
                 <input
+                  id="username"
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Knight"
-                  className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-mono"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg pl-9 pr-3.5 py-2.5 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 transition-all font-mono"
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Admin Password
+              <div className="flex justify-between items-center mb-1.5">
+                <label
+                  htmlFor="password"
+                  className="text-[13px] font-medium text-[var(--text-primary)]"
+                >
+                  Password
                 </label>
                 <Link
                   href="/reset-password"
-                  className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-medium"
+                  className="text-[12.5px] text-[var(--accent)] hover:underline font-medium"
                 >
-                  <KeyRound className="w-3 h-3" />
-                  Reset via Email
+                  Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-[var(--text-muted)] pointer-events-none">
+                  <Lock className="w-4 h-4" />
+                </span>
                 <input
-                  type="password"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-mono"
+                  className="w-full text-sm text-[var(--text-primary)] bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-lg pl-9 pr-10 py-2.5 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 transition-all font-mono"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 font-bold text-sm shadow-xl shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 font-medium text-sm py-2.5 px-3.5 rounded-lg border-none bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white cursor-pointer inline-flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-sm"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>Access Control Center</span>
+                  <span>Sign in</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-zinc-800/80 text-center">
-            <span className="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              OpenVPN Guard Active
-            </span>
+          {/* Card Footer */}
+          <div className="flex items-center justify-center gap-2 mt-5 pt-5 border-t border-[var(--border)] text-[12.5px] text-[var(--text-secondary)]">
+            <span className="w-2 h-2 rounded-full bg-[var(--success)] shadow-[0_0_0_3px_var(--success-soft)]"></span>
+            <span>WireGuard virtual router operational</span>
           </div>
         </div>
       </div>
