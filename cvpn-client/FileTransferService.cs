@@ -88,6 +88,9 @@ namespace CustomVPN.Client
 
                             await fileStream.WriteAsync(buffer, 0, read);
                             totalRead += read;
+
+                            int percent = (int)((totalRead * 100) / fileSize);
+                            TransferProgress?.Invoke(Path.GetFileName(fileName), percent);
                         }
                     }
 

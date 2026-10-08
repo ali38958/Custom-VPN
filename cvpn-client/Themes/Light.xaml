@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="BgPrimary" Color="#EFF6FF"/> <!-- Pale Blue -->
+    <SolidColorBrush x:Key="BgSecondary" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="BgTertiary" Color="#DBEAFE"/>
+    <SolidColorBrush x:Key="BgHover" Color="#BFDBFE"/>
+    <SolidColorBrush x:Key="BorderPrimary" Color="#93C5FD"/>
+    <SolidColorBrush x:Key="BorderSecondary" Color="#BFDBFE"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#1E3A8A"/> <!-- Deep Blue -->
+    <SolidColorBrush x:Key="TextSecondary" Color="#1D4ED8"/>
+    <SolidColorBrush x:Key="TextMuted" Color="#60A5FA"/>
+    <SolidColorBrush x:Key="AccentColor" Color="#E11D48"/> <!-- Crimson -->
+    <SolidColorBrush x:Key="AccentSecondary" Color="#BE123C"/>
+    <SolidColorBrush x:Key="SuccessColor" Color="#059669"/>
+    <SolidColorBrush x:Key="SuccessBg" Color="#D1FAE5"/>
+    <SolidColorBrush x:Key="SuccessText" Color="#065F46"/>
+    <SolidColorBrush x:Key="DangerBg" Color="#FFE4E6"/>
+    <SolidColorBrush x:Key="DangerText" Color="#E11D48"/>
+    <SolidColorBrush x:Key="DangerIcon" Color="#BE123C"/>
+    <SolidColorBrush x:Key="ListHover" Color="#DBEAFE"/>
+    <SolidColorBrush x:Key="ListSelected" Color="#BFDBFE"/>
+</ResourceDictionary>

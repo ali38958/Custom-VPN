@@ -3,20 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Custom VPN — Secure Mesh Client" Height="620" Width="840"
         WindowStartupLocation="CenterScreen"
-        Background="#090D16" Foreground="#F8FAFC" FontFamily="Segoe UI"
+        Background="{DynamicResource BgPrimary}" Foreground="{DynamicResource TextPrimary}" FontFamily="Segoe UI"
+        Icon="app_icon.ico"
         ResizeMode="CanMinimize">
 
     <Window.Resources>
         <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
-            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border x:Name="BackgroundBorder" Width="34" Height="18" CornerRadius="9" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" VerticalAlignment="Center" Margin="0,0,8,0">
-                                <Ellipse x:Name="Knob" Width="14" Height="14" Fill="#64748B" HorizontalAlignment="Left" Margin="1,0,0,0">
+                            <Border x:Name="BackgroundBorder" Width="34" Height="18" CornerRadius="9" Background="{DynamicResource BgTertiary}" BorderBrush="{DynamicResource BgHover}" BorderThickness="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                <Ellipse x:Name="Knob" Width="14" Height="14" Fill="{DynamicResource TextMuted}" HorizontalAlignment="Left" Margin="1,0,0,0">
                                     <Ellipse.RenderTransform>
                                         <TranslateTransform X="0" />
                                     </Ellipse.RenderTransform>
@@ -55,11 +56,11 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="#1E293B" CornerRadius="10">
+                                <Border Background="{DynamicResource BgTertiary}" CornerRadius="10">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Ellipse Width="6" Height="6" Fill="#94A3B8" Margin="2" x:Name="Dot1"/>
-                                        <Ellipse Width="6" Height="6" Fill="#94A3B8" Margin="2" x:Name="Dot2"/>
-                                        <Ellipse Width="6" Height="6" Fill="#94A3B8" Margin="2" x:Name="Dot3"/>
+                                        <Ellipse Width="6" Height="6" Fill="{DynamicResource TextSecondary}" Margin="2" x:Name="Dot1"/>
+                                        <Ellipse Width="6" Height="6" Fill="{DynamicResource TextSecondary}" Margin="2" x:Name="Dot2"/>
+                                        <Ellipse Width="6" Height="6" Fill="{DynamicResource TextSecondary}" Margin="2" x:Name="Dot3"/>
                                     </StackPanel>
                                     <Border.Triggers>
                                         <EventTrigger RoutedEvent="Loaded">
@@ -111,13 +112,13 @@
                     <TextBlock Text="🛡️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel Margin="12,0,0,0">
-                    <TextBlock Text="Custom VPN" FontWeight="Bold" FontSize="16" Foreground="#F8FAFC"/>
-                    <TextBlock x:Name="TxtServerEndpoint" Text="Target: https://resolvia.cc.cd" FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock Text="Custom VPN" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource TextPrimary}"/>
+                    <TextBlock x:Name="TxtServerEndpoint" Text="Target: https://resolvia.cc.cd" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
                 </StackPanel>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="BtnChangeServer" Content="Change Server" Padding="12,6" Background="#1E293B" Foreground="#38BDF8" BorderThickness="1" BorderBrush="#334155" Cursor="Hand" Click="BtnChangeServer_Click">
+                <Button x:Name="BtnChangeServer" Content="Change Server" Padding="12,6" Background="{DynamicResource BgTertiary}" Foreground="{DynamicResource AccentColor}" BorderThickness="1" BorderBrush="{DynamicResource BgHover}" Cursor="Hand" Click="BtnChangeServer_Click">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="8"/>
@@ -128,26 +129,38 @@
         </Grid>
 
         <!-- LOGIN VIEW -->
-        <Border x:Name="PanelLogin" Margin="0,70,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420" MinWidth="320" Background="#0F172A" CornerRadius="16" BorderBrush="#1E293B" BorderThickness="1" Padding="32">
+        <Border x:Name="PanelLogin" Margin="0,70,0,0" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420" MinWidth="320" Background="{DynamicResource BgSecondary}" CornerRadius="16" BorderBrush="{DynamicResource BgTertiary}" BorderThickness="1" Padding="32">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.3" Color="Black"/>
             </Border.Effect>
             <StackPanel>
-                <TextBlock Text="Client Device Authentication" FontWeight="Bold" FontSize="18" Foreground="#F1F5F9" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                <TextBlock Text="Locked 1:1 hardware session bound to this PC" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,0,0,24"/>
+                <TextBlock Text="Client Device Authentication" FontWeight="Bold" FontSize="18" Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                <TextBlock Text="Locked 1:1 hardware session bound to this PC" FontSize="11" Foreground="{DynamicResource TextMuted}" HorizontalAlignment="Center" Margin="0,0,0,24"/>
 
-                <TextBlock Text="Username" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                <TextBox x:Name="TxtUsername" KeyDown="LoginField_KeyDown" Padding="10,8" Background="#020617" Foreground="#F8FAFC" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,16"/>
+                <TextBlock Text="Username" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,6"/>
+                <TextBox x:Name="TxtUsername" KeyDown="LoginField_KeyDown" Padding="10,8" Background="{DynamicResource BgPrimary}" Foreground="{DynamicResource TextPrimary}" BorderBrush="{DynamicResource BgHover}" BorderThickness="1" Margin="0,0,0,8"/>
 
-                <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                <PasswordBox x:Name="TxtPassword" KeyDown="LoginField_KeyDown" Padding="10,8" Background="#020617" Foreground="#F8FAFC" BorderBrush="#334155" BorderThickness="1" Margin="0,0,0,20"/>
+                <CheckBox x:Name="ChkRememberMe" Content="Remember username" Foreground="{DynamicResource TextMuted}" FontSize="11" Margin="0,0,0,16"/>
 
-                <TextBlock x:Name="TxtLoginError" Text="" Foreground="#F87171" FontSize="11" Margin="0,0,0,12" TextWrapping="Wrap" Visibility="Collapsed"/>
+                <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,6"/>
+                <Grid Margin="0,0,0,20">
+                    <PasswordBox x:Name="TxtPassword" KeyDown="LoginField_KeyDown" Padding="10,8,30,8" Background="{DynamicResource BgPrimary}" Foreground="{DynamicResource TextPrimary}" BorderBrush="{DynamicResource BgHover}" BorderThickness="1"/>
+                    <TextBox x:Name="TxtPasswordVisible" Visibility="Collapsed" KeyDown="LoginField_KeyDown" Padding="10,8,30,8" Background="{DynamicResource BgPrimary}" Foreground="{DynamicResource TextPrimary}" BorderBrush="{DynamicResource BgHover}" BorderThickness="1"/>
+                    <Button x:Name="BtnTogglePassword" Content="👁" Background="Transparent" Foreground="{DynamicResource TextMuted}" BorderThickness="0" HorizontalAlignment="Right" Width="30" Cursor="Hand" Click="BtnTogglePassword_Click"/>
+                </Grid>
 
-                <Button x:Name="BtnLogin" Content="Establish VPN Session" Width="260" Padding="0,12" Background="#06B6D4" Foreground="#020617" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnLogin_Click" Style="{StaticResource LoginButtonStyle}">
+                <TextBlock x:Name="TxtLoginError" Text="" Foreground="{DynamicResource DangerText}" FontSize="11" Margin="0,0,0,12" TextWrapping="Wrap" Visibility="Collapsed">
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform x:Name="LoginErrorTransform" X="0" Y="0"/>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+
+                <Button x:Name="BtnLogin" Content="Establish VPN Session" HorizontalAlignment="Stretch" Height="40" Background="#06B6D4" Foreground="{DynamicResource BgPrimary}" FontWeight="Bold" FontSize="13" BorderThickness="0" Cursor="Hand" Click="BtnLogin_Click" Style="{StaticResource LoginButtonStyle}">
                 </Button>
+                
+                <TextBlock x:Name="TxtLoginStatus" Text="" Foreground="{DynamicResource TextMuted}" FontSize="11" Margin="0,8,0,0" HorizontalAlignment="Center" Visibility="Collapsed"/>
 
-                <Button x:Name="BtnResetDeviceLock" Content="Lost Device? Reset Lock" Margin="0,14,0,0" Background="Transparent" Foreground="#38BDF8" BorderThickness="0" FontSize="11" Cursor="Hand" Click="BtnResetDeviceLock_Click"/>
+                <Button x:Name="BtnResetDeviceLock" Content="Lost Device? Reset Lock" Margin="0,14,0,0" Background="Transparent" Foreground="{DynamicResource AccentColor}" BorderThickness="0" FontSize="11" Cursor="Hand" Click="BtnResetDeviceLock_Click"/>
             </StackPanel>
         </Border>
 
@@ -159,26 +172,47 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left Controls Column -->
-            <Border Grid.Column="0" Background="#0F172A" CornerRadius="16" BorderBrush="#1E293B" BorderThickness="1" Padding="20" Margin="0,0,16,0">
+            <Border Grid.Column="0" Background="{DynamicResource BgSecondary}" CornerRadius="16" BorderBrush="{DynamicResource BgTertiary}" BorderThickness="1" Padding="20" Margin="0,0,16,0">
                 <StackPanel>
-                    <TextBlock Text="VPN Status" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,20">
+                    <TextBlock Text="VPN Status" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,2">
                         <Border x:Name="StatusDot" Width="10" Height="10" CornerRadius="5" Background="#10B981" VerticalAlignment="Center"/>
+                        
+                        <TextBlock x:Name="StatusSpinner" Text="↻" Foreground="#EAB308" FontWeight="Bold" FontSize="16" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform x:Name="SpinnerRotation" Angle="0"/>
+                            </TextBlock.RenderTransform>
+                            <TextBlock.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation Storyboard.TargetName="SpinnerRotation" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:1" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </TextBlock.Triggers>
+                        </TextBlock>
+
                         <TextBlock x:Name="TxtStatus" Text="CONNECTED" TextWrapping="Wrap" FontWeight="Bold" FontSize="13" Foreground="#10B981" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtPing" Text="•  -- ms" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondary}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
+                    
+                    <TextBlock x:Name="TxtUptime" Text="Connected for 0s" FontSize="11" Foreground="{DynamicResource TextMuted}" Margin="18,0,0,20"/>
 
-                    <TextBlock Text="Virtual Assigned IP" FontSize="11" Foreground="#64748B"/>
-                    <TextBlock x:Name="TxtAssignedIp" Text="10.77.0.2" FontSize="18" FontWeight="Bold" Foreground="#38BDF8" Margin="0,2,0,20"/>
+                    <TextBlock Text="Virtual Assigned IP" FontSize="11" Foreground="{DynamicResource TextMuted}"/>
+                    <TextBlock x:Name="TxtAssignedIp" Text="—" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentColor}" Margin="0,2,0,2"/>
+                    <TextBlock x:Name="TxtCurrentUser" Text="Account: —" FontSize="11" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,16"/>
 
-                    <Border Background="#020617" CornerRadius="12" Padding="14" Margin="0,0,0,20" BorderBrush="#1E293B" BorderThickness="1">
+                    <Border Background="{DynamicResource BgPrimary}" CornerRadius="12" Padding="14" Margin="0,0,0,20" BorderBrush="{DynamicResource BgTertiary}" BorderThickness="1">
                         <StackPanel>
                             <TextBlock Text="Route All Internet Traffic" FontWeight="SemiBold" FontSize="12" Foreground="#E2E8F0"/>
-                            <TextBlock Text="Enforces full tunnel encryption" FontSize="10" Foreground="#64748B" Margin="0,2,0,10"/>
+                            <TextBlock Text="Enforces full tunnel encryption" FontSize="10" Foreground="{DynamicResource TextMuted}" Margin="0,2,0,10"/>
                             <CheckBox x:Name="ChkRouteAll" Style="{StaticResource ToggleSwitchStyle}" IsChecked="False" Content="Redirect Default Gateway" Checked="ChkRouteAll_Checked" Unchecked="ChkRouteAll_Unchecked"/>
+                            <TextBlock x:Name="TxtTunnelMode" Text="Current Mode: Split Tunnel" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource SuccessColor}" Margin="0,10,0,0"/>
                         </StackPanel>
                     </Border>
 
-                    <Button x:Name="BtnSendFile" Content="📁 Send File to Peer" Padding="0,10" Background="#1E293B" Foreground="#F8FAFC" FontWeight="SemiBold" BorderThickness="1" BorderBrush="#334155" Cursor="Hand" Margin="0,0,0,12" Click="BtnSendFile_Click">
+                    <Button x:Name="BtnSendFile" Content="📁 Send File to Peer" Padding="0,10" Background="{DynamicResource BgTertiary}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" BorderThickness="1" BorderBrush="{DynamicResource BgHover}" Cursor="Hand" Margin="0,0,0,12" Click="BtnSendFile_Click">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="8"/>
@@ -186,7 +220,15 @@
                         </Button.Resources>
                     </Button>
 
-                    <Button x:Name="BtnLogout" Content="Release Device &amp; Sign Out" Padding="0,10" Background="#450A0A" Foreground="#FCA5A5" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand" Click="BtnLogout_Click">
+                    <Button x:Name="BtnSettings" Content="⚙ Preferences" Padding="0,10" Background="{DynamicResource BgTertiary}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" BorderThickness="1" BorderBrush="{DynamicResource BgHover}" Cursor="Hand" Margin="0,0,0,12" Click="BtnSettings_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <Button x:Name="BtnLogout" Content="Release Device &amp; Sign Out" Padding="0,10" Background="{DynamicResource DangerBg}" Foreground="{DynamicResource DangerText}" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand" Click="BtnLogout_Click">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="8"/>
@@ -197,7 +239,7 @@
             </Border>
 
             <!-- Right Peers Column -->
-            <Border Grid.Column="1" Background="#0F172A" CornerRadius="16" BorderBrush="#1E293B" BorderThickness="1" Padding="20">
+            <Border Grid.Column="1" Background="{DynamicResource BgSecondary}" CornerRadius="16" BorderBrush="{DynamicResource BgTertiary}" BorderThickness="1" Padding="20">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -205,64 +247,130 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Margin="0,0,0,14">
-                        <TextBlock Text="Network Peers &amp; Devices" FontWeight="Bold" FontSize="15" Foreground="#F8FAFC"/>
-                        <TextBlock Text="Direct P2P file transfers accessible over OpenVPN addresses" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
+                        <TextBlock Text="Network Peers &amp; Devices" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextPrimary}"/>
+                        <TextBlock Text="Direct P2P file transfers accessible over OpenVPN addresses" FontSize="11" Foreground="{DynamicResource TextMuted}" Margin="0,2,0,0"/>
                     </StackPanel>
 
-                    <ListBox x:Name="ListPeers" Grid.Row="1" Background="Transparent" BorderThickness="0" Foreground="#F8FAFC" HorizontalContentAlignment="Stretch">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="#020617" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
+                    <Grid Grid.Row="1">
+                        <TextBlock x:Name="TxtEmptyPeers" Text="No peers found." Foreground="{DynamicResource TextMuted}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" FontSize="13"/>
+                        <ListBox x:Name="ListPeers" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimary}" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False" Padding="0,0,10,0" Margin="0,0,-10,0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource BgPrimary}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource BgTertiary}" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-                                        <TextBlock Grid.Column="0" Text="💻" FontSize="18" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                            <TextBlock Grid.Column="0" Text="💻" FontSize="18" VerticalAlignment="Center" Margin="0,0,12,0"/>
 
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Username}" FontWeight="Bold" FontSize="13" Foreground="#F1F5F9"/>
-                                            <TextBlock Text="{Binding DeviceName}" FontSize="11" Foreground="#64748B" Margin="0,2,0,0"/>
-                                        </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Username}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
+                                                <TextBlock Text="{Binding DeviceName}" FontSize="11" Foreground="{DynamicResource TextMuted}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" MaxWidth="150" HorizontalAlignment="Left"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding LatencyString}" FontSize="10" Foreground="{DynamicResource SuccessColor}" Visibility="{Binding LatencyVisibility}"/>
+                                                    <TextBlock Text="{Binding LastSeenString}" FontSize="10" Foreground="{DynamicResource TextSecondary}" Visibility="{Binding LastSeenVisibility}"/>
+                                                </StackPanel>
+                                            </StackPanel>
 
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Ip}" FontSize="12" FontWeight="SemiBold" Foreground="#38BDF8" Margin="0,0,12,0" VerticalAlignment="Center" FontFamily="Consolas"/>
-                                            <Border CornerRadius="6" Padding="8,4">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="#065F46"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsOnline}" Value="False">
-                                                                <Setter Property="Background" Value="#450A0A"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock FontSize="9" FontWeight="Bold">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="ONLINE"/>
-                                                            <Setter Property="Foreground" Value="#34D399"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsOnline}" Value="False">
-                                                                    <Setter Property="Text" Value="OFFLINE"/>
-                                                                    <Setter Property="Foreground" Value="#F87171"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Border>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                                            <StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding Ip}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentColor}" Margin="0,0,8,0" VerticalAlignment="Center" FontFamily="Consolas"/>
+                                                    <Button Content="📋" ToolTip="Copy IP" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondary}" FontSize="10" Cursor="Hand" Click="BtnCopyIp_Click" Tag="{Binding Ip}"/>
+                                                </StackPanel>
+                                                <Border Margin="0,4,0,0" Padding="6,2" CornerRadius="4" HorizontalAlignment="Right" Background="{Binding StatusBg}">
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="9" FontWeight="Bold" Foreground="{Binding StatusFg}"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border Background="Transparent">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border x:Name="OverlayProgress" Grid.ColumnSpan="2" Background="{DynamicResource BgTertiary}" CornerRadius="12" Padding="20" Margin="20" 
+                    HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Collapsed"
+                    BorderBrush="{DynamicResource BgHover}" BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.5" BlurRadius="20" ShadowDepth="5" />
+                </Border.Effect>
+                <StackPanel MinWidth="250">
+                    <TextBlock x:Name="TxtTransferFile" Text="Transferring file..." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,10"/>
+                    <ProgressBar x:Name="ProgressTransfer" Height="8" Minimum="0" Maximum="100" Value="0" 
+                                 Background="{DynamicResource BgSecondary}" Foreground="{DynamicResource AccentSecondary}" BorderThickness="0">
+                        <ProgressBar.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="4"/>
+                            </Style>
+                        </ProgressBar.Resources>
+                    </ProgressBar>
+                    <TextBlock x:Name="TxtTransferPercent" Text="0%" FontSize="11" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Right" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Settings Overlay -->
+            <Border x:Name="PanelSettings" Grid.ColumnSpan="2" Background="{DynamicResource BgPrimary}" CornerRadius="16" Margin="20"
+                    Visibility="Collapsed">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.5" BlurRadius="40" ShadowDepth="10" />
+                </Border.Effect>
+                <Grid Margin="30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Text="Preferences" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,20"/>
+                    <Button x:Name="BtnCloseSettings" Content="✕" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Foreground="{DynamicResource TextMuted}" BorderThickness="0" Cursor="Hand" FontSize="16" Click="BtnCloseSettings_Click"/>
+                    
+                    <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                        <CheckBox x:Name="ChkTheme" Content="Use Dark Theme" IsChecked="True" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15" Checked="ChkTheme_Changed" Unchecked="ChkTheme_Changed">
+                            <CheckBox.LayoutTransform>
+                                <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+                            </CheckBox.LayoutTransform>
+                        </CheckBox>
+                        
+                        <CheckBox x:Name="ChkAutoConnect" Content="Connect Automatically on Launch" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,15">
+                            <CheckBox.LayoutTransform>
+                                <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+                            </CheckBox.LayoutTransform>
+                        </CheckBox>
+                    </StackPanel>
+                    
+                    <Button Grid.Row="2" x:Name="BtnSaveSettings" Content="Save Preferences" Padding="0,12" Background="{DynamicResource AccentSecondary}" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="BtnSaveSettings_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
                 </Grid>
             </Border>
         </Grid>
     </Grid>
 </Window>
+

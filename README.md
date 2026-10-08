@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🛡️ PrivateNet / Custom VPN</h1>
+  <h1>🛡️ PrivateNet / Custom VPN (v0.2.0)</h1>
   <p><strong>A modern, self-hosted peer-to-peer mesh VPN and administration platform built on WireGuard.</strong></p>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
