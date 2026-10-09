@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -14,7 +14,21 @@ namespace CustomVPN.Client
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             "WireGuard", "wireguard.exe");
 
-        public static bool IsWireGuardInstalled => File.Exists(WireGuardExePath);
+        // Checks BOTH the exe AND the wireguard-nt driver file are present.
+        // wireguard.exe can exist as a leftover from a corrupted/partial uninstall
+        // while wireguard.sys is gone — which causes Manager to get stuck in START_PENDING.
+        public static bool IsWireGuardInstalled
+        {
+            get
+            {
+                if (!File.Exists(WireGuardExePath)) return false;
+                var driverPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.System),
+                    "drivers", "wireguard.sys");
+                var wgDir = Path.GetDirectoryName(WireGuardExePath)!;
+                return File.Exists(driverPath) || File.Exists(Path.Combine(wgDir, "wireguard.dll"));
+            }
+        }
 
         private static string ConfigDir => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
@@ -24,7 +38,6 @@ namespace CustomVPN.Client
 
         // ─── Helpers ────────────────────────────────────────────────────────────
 
-        /// <summary>Run a process as the current user (NOT elevated) so it can use redirected I/O.</summary>
         private static (string stdout, int exitCode) RunProcess(string exe, string args)
         {
             var psi = new ProcessStartInfo(exe, args)
@@ -56,44 +69,52 @@ namespace CustomVPN.Client
                 if (p == null) return (-1, "Process start failed");
                 string outStr = p.StandardOutput.ReadToEnd();
                 string errStr = p.StandardError.ReadToEnd();
-                p.WaitForExit(10000); // wait up to 10s
+                p.WaitForExit(10000);
                 return (p.ExitCode, outStr + "\n" + errStr);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"RunWireGuard failed: {ex.Message}");
                 return (-1, ex.Message);
             }
         }
 
         // ─── WireGuard Install ───────────────────────────────────────────────────
 
-        public static async Task<(bool Success, string ErrorMsg)> EnsureWireGuardInstalledAsync(Action<string>? statusCallback = null)
+        public static async Task<(bool Success, string ErrorMsg)> EnsureWireGuardInstalledAsync(
+            Action<string>? statusCallback = null, bool force = false)
         {
-            if (IsWireGuardInstalled) return (true, "");
+            if (!force && IsWireGuardInstalled) return (true, "");
 
-            statusCallback?.Invoke("WireGuard engine not found. Downloading installer...");
+            if (force)
+                statusCallback?.Invoke("WireGuard installation appears broken. Reinstalling...");
+            else
+                statusCallback?.Invoke("WireGuard not found. Downloading installer...");
+
             var tempInstaller = Path.Combine(Path.GetTempPath(), "wireguard-installer.exe");
 
             try
             {
                 using var client = new HttpClient();
+                client.Timeout = TimeSpan.FromSeconds(60);
+                statusCallback?.Invoke("Downloading WireGuard...");
                 var data = await client.GetByteArrayAsync("https://download.wireguard.com/windows-client/wireguard-installer.exe");
                 await File.WriteAllBytesAsync(tempInstaller, data);
 
-                statusCallback?.Invoke("Installing WireGuard (elevation required)...");
-                var (stdout, exitCode) = RunProcess(tempInstaller, "/S");
+                statusCallback?.Invoke("Installing WireGuard (this may take a moment)...");
+                RunProcess(tempInstaller, "/S");
 
-                for (int i = 0; i < 15; i++)
+                for (int i = 0; i < 30; i++)
                 {
                     if (IsWireGuardInstalled) return (true, "");
                     await Task.Delay(1000);
                 }
-                return (false, $"Installer exited with code {exitCode}. Output: {stdout}");
+
+                if (File.Exists(WireGuardExePath)) return (true, "");
+                return (false, "WireGuard installer ran but wireguard.exe not found after 30 seconds.");
             }
             catch (Exception ex)
             {
-                statusCallback?.Invoke($"Auto-install failed: {ex.Message}");
+                statusCallback?.Invoke($"Install failed: {ex.Message}");
                 return (false, $"Download/Install error: {ex.Message}");
             }
         }
@@ -102,31 +123,28 @@ namespace CustomVPN.Client
 
         public static bool IsTunnelInstalled()
         {
-            if (!IsWireGuardInstalled) return false;
+            if (!File.Exists(WireGuardExePath)) return false;
             try
             {
                 var (output, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
                 if (output.Contains("SERVICE_NAME")) return true;
             }
             catch { }
-            // Also check if the network adapter exists.
             return IsAdapterPresent();
         }
 
         public static bool IsTunnelRunning()
         {
-            if (!IsWireGuardInstalled) return false;
+            if (!File.Exists(WireGuardExePath)) return false;
             try
             {
                 var (output, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
                 if (output.Contains("RUNNING")) return true;
             }
             catch { }
-            // Adapter present = tunnel is effectively running.
             return IsAdapterPresent();
         }
 
-        /// <summary>Returns true if the CustomVPN network adapter exists in Windows.</summary>
         public static bool IsAdapterPresent()
         {
             try
@@ -137,7 +155,6 @@ namespace CustomVPN.Client
             catch { return false; }
         }
 
-        // Keep old name as alias so existing callers don't break.
         public static bool IsTunnelActive() => IsTunnelRunning();
 
         public static bool CanPingServer(string ip = "10.77.0.1", int timeoutMs = 1000)
@@ -153,12 +170,10 @@ namespace CustomVPN.Client
 
         // ─── Routing helpers ─────────────────────────────────────────────────────
 
-        /// <summary>Get the current default gateway IP (pre-VPN, from Wi-Fi / Ethernet).</summary>
         private static string? GetDefaultGateway()
         {
             try
             {
-                // Parse "route print 0.0.0.0" which always lists the default route first.
                 var (output, _) = RunProcess("route", "print 0.0.0.0");
                 var m = Regex.Match(output, @"0\.0\.0\.0\s+0\.0\.0\.0\s+(\d+\.\d+\.\d+\.\d+)");
                 if (m.Success) return m.Groups[1].Value;
@@ -167,7 +182,6 @@ namespace CustomVPN.Client
             return null;
         }
 
-        /// <summary>Resolve a host:port or plain host string to an IP string.</summary>
         private static string? ResolveEndpointIp(string endpointStr)
         {
             try
@@ -183,20 +197,14 @@ namespace CustomVPN.Client
 
         // ─── Tunnel Lifecycle ────────────────────────────────────────────────────
 
-        /// <summary>Ensures the WireGuard Manager service is running (it loads wireguard.sys).</summary>
         private static async Task<bool> EnsureManagerServiceAsync(Action<string>? log = null)
         {
-            // Check if already running
             var (scOut, _) = RunProcess("sc", "query WireGuardManager");
             if (scOut.Contains("RUNNING")) return true;
 
             log?.Invoke("Starting WireGuard Manager service...");
-
-            // /installmanagerservice is idempotent: installs AND starts it.
-            // Always call it — whether the service exists or not.
             RunWireGuard("/installmanagerservice");
 
-            // Wait up to 15s for it to reach RUNNING
             for (int i = 0; i < 30; i++)
             {
                 var (status, _) = RunProcess("sc", "query WireGuardManager");
@@ -204,62 +212,63 @@ namespace CustomVPN.Client
                 await Task.Delay(500);
             }
 
-            log?.Invoke("Warning: WireGuard Manager did not reach RUNNING state.");
             return false;
         }
 
-        /// <summary>Install and start the WireGuard tunnel service. Waits until running.</summary>
-        private static async Task<(bool Success, string ErrorMsg)> InstallTunnelServiceAsync(Action<string>? log = null)
+        private static async Task<(bool Success, string ErrorMsg)> InstallTunnelServiceAsync(
+            Action<string>? log = null)
         {
-            log?.Invoke("Preparing WireGuard engine...");
+            log?.Invoke("Starting WireGuard engine...");
 
-            // NOTE: Do NOT kill the WireGuard GUI process.
-            // Killing it causes Windows to unregister the Manager service (it owns it),
-            // which unloads wireguard.sys and breaks /installtunnelservice.
+            bool managerOk = await EnsureManagerServiceAsync(log);
 
-            // CRITICAL: Ensure Manager service is running before installing tunnel.
-            // The Manager loads wireguard.sys into the kernel.
-            await EnsureManagerServiceAsync(log);
-            await Task.Delay(1000); // give driver a moment to fully initialize
+            if (!managerOk)
+            {
+                log?.Invoke("WireGuard Manager failed to start. Reinstalling WireGuard...");
+                var (reinstallOk, reinstallErr) = await EnsureWireGuardInstalledAsync(log, force: true);
+                if (!reinstallOk)
+                    return (false, $"WireGuard reinstall failed: {reinstallErr}");
 
-            log?.Invoke("Installing WireGuard tunnel service...");
+                await Task.Delay(2000);
+                managerOk = await EnsureManagerServiceAsync(log);
+                if (!managerOk)
+                    return (false,
+                        "WireGuard Manager could not start even after reinstall.\n" +
+                        "Please install WireGuard manually from https://www.wireguard.com/install/ then relaunch this app.");
+            }
 
-            // App runs as Administrator — inherit the token directly, wait for real exit.
+            await Task.Delay(1500);
+
+            log?.Invoke("Installing VPN tunnel service...");
             var (exitCode, output) = RunWireGuard($"/installtunnelservice \"{ConfigPath}\"");
 
-            // Exit code 0 = service registered successfully.
             if (exitCode == 0)
             {
-                // Poll until RUNNING (not just START_PENDING)
                 for (int i = 0; i < 20; i++)
                 {
                     if (IsTunnelRunning()) return (true, "");
                     await Task.Delay(500);
                 }
-                // Still START_PENDING — something hung
+
                 var (sc2, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
-                return (false, $"Service installed but stuck in START_PENDING.\n{sc2}");
+                return (false, $"Tunnel service stuck in START_PENDING.\n{sc2.Trim()}");
             }
 
-            // Fallback: maybe SCM is just slow. Poll briefly.
             for (int i = 0; i < 10; i++)
             {
                 if (IsTunnelRunning()) return (true, "");
                 await Task.Delay(500);
             }
 
-            log?.Invoke($"Tunnel service install failed (exit code {exitCode}).");
-            return (false, $"Exit code {exitCode}. Output: {output}");
+            return (false, $"Tunnel install failed (exit {exitCode}).\n{output.Trim()}");
         }
 
-        /// <summary>Stop and uninstall the WireGuard tunnel service. Waits until gone.</summary>
         public static async Task DeactivateTunnelAsync()
         {
             if (!IsTunnelInstalled()) return;
 
             RunWireGuard($"/uninstalltunnelservice {TunnelName}");
 
-            // Poll until the service is confirmed gone.
             for (int i = 0; i < 30; i++)
             {
                 if (!IsTunnelInstalled()) return;
@@ -269,12 +278,6 @@ namespace CustomVPN.Client
 
         // ─── Public API ──────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Write config and bring up the WireGuard tunnel.
-        /// If routeAllTraffic=true, patches AllowedIPs to 0.0.0.0/0 and adds a
-        /// /32 static route for the VPN server so the tunnel packets themselves
-        /// don't loop back into the tunnel.
-        /// </summary>
         public static async Task<(bool Success, string ErrorMsg)> ActivateTunnelAsync(
             string configText,
             bool routeAllTraffic,
@@ -282,48 +285,33 @@ namespace CustomVPN.Client
         {
             var (instOk, instErr) = await EnsureWireGuardInstalledAsync(logCallback);
             if (!instOk)
-                return (false, $"WireGuard is not installed: {instErr}");
+                return (false, $"WireGuard install failed: {instErr}");
 
-            logCallback?.Invoke("Writing WireGuard profile...");
+            logCallback?.Invoke("Writing VPN profile...");
             Directory.CreateDirectory(ConfigDir);
 
-            // Sanitize configText: enforce /24 subnet mask on-link for Windows
             configText = Regex.Replace(configText, @"(Address\s*=\s*10\.77\.0\.\d+)/32", "$1/24");
 
-            // Enforce PersistentKeepalive = 10 to keep aggressive ISP NAT mappings open
             if (Regex.IsMatch(configText, @"PersistentKeepalive\s*=\s*\d+"))
-            {
                 configText = Regex.Replace(configText, @"PersistentKeepalive\s*=\s*\d+", "PersistentKeepalive = 10");
-            }
             else
-            {
                 configText = Regex.Replace(configText, @"(\[Peer\])", "$1\nPersistentKeepalive = 10");
-            }
 
             if (routeAllTraffic)
             {
-                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+",
-                    "AllowedIPs = 0.0.0.0/0, ::/0");
-
-                // Ensure DNS is present for full tunnel
+                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+", "AllowedIPs = 0.0.0.0/0, ::/0");
                 if (!Regex.IsMatch(configText, @"DNS\s*="))
-                {
                     configText = Regex.Replace(configText, @"(\[Interface\][\s\S]*?Address\s*=\s*[^\r\n]+)", "$1\nDNS = 1.1.1.1, 8.8.8.8");
-                }
             }
             else
             {
-                // In split tunnel mode, strip DNS so Windows NCSI and local physical DNS do not get blackholed
                 configText = Regex.Replace(configText, @"DNS\s*=\s*[^\r\n]+(\r?\n)?", "");
             }
 
             await File.WriteAllTextAsync(ConfigPath, configText);
 
-            // Tear down any existing tunnel first.
             await DeactivateTunnelAsync();
 
-            // If full-tunnel, inject the /32 exception route BEFORE installing the
-            // 0.0.0.0/0 tunnel (so we still have a working default route at that point).
             if (routeAllTraffic)
             {
                 var epMatch = Regex.Match(configText, @"Endpoint\s*=\s*([^\s]+)");
@@ -331,7 +319,6 @@ namespace CustomVPN.Client
                 {
                     var endpointIp = ResolveEndpointIp(epMatch.Groups[1].Value);
                     var gateway    = GetDefaultGateway();
-
                     if (endpointIp != null && gateway != null)
                     {
                         logCallback?.Invoke($"Adding exception route: {endpointIp} via {gateway}");
@@ -342,9 +329,8 @@ namespace CustomVPN.Client
             }
 
             var (started, err) = await InstallTunnelServiceAsync(logCallback);
-            if (!started) return (false, $"Service fail: {err}");
+            if (!started) return (false, err);
 
-            // Verify connectivity.
             logCallback?.Invoke("Verifying VPN connectivity...");
             for (int i = 0; i < 10; i++)
             {
@@ -352,101 +338,55 @@ namespace CustomVPN.Client
                 await Task.Delay(500);
             }
 
-            // Service is running but ping failed — still usable.
-            logCallback?.Invoke("Tunnel up (ping timed out — may be server firewall).");
-            bool running = IsTunnelRunning();
-            if (running) return (true, "");
-            
-            var (scOutput, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
-            var (eventLog, _) = RunProcess("powershell", $"-NoProfile -Command \"Get-WinEvent -LogName System -MaxEvents 5 -ErrorAction SilentlyContinue | Where-Object {{ $_.Message -like '*WireGuard Tunnel: {TunnelName}*' }} | Select-Object -ExpandProperty Message\"");
-            
-            string wgLog = "Failed to dump wg log";
-            try 
+            if (IsTunnelRunning())
             {
-                var psi = new ProcessStartInfo { FileName = "C:\\Program Files\\WireGuard\\wireguard.exe", Arguments = "/dumplog", RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
-                using var p = Process.Start(psi);
-                if (p != null) {
-                    wgLog = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit(3000);
-                    
-                    var lines = wgLog.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    wgLog = string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 15)));
-                }
-            } catch { }
+                logCallback?.Invoke("Tunnel up (ping timed out — may be server firewall).");
+                return (true, "");
+            }
 
-            return (false, $"Adapter failed to start.\nSC Status:\n{scOutput.Trim()}\nWG Log:\n{wgLog}\nEvent Log:\n{eventLog.Trim()}");
+            return (false, "Tunnel started but connectivity check failed. Check server status.");
         }
 
-        /// <summary>
-        /// Toggle "route all internet traffic" without tearing down the whole session.
-        /// Updates the config file, removes old exception routes, re-installs the service.
-        /// Returns true if tunnel is running after the operation.
-        /// </summary>
         public static async Task<bool> SetRouteAllTrafficAsync(bool enable)
         {
-            if (!IsWireGuardInstalled) return false;
+            if (!File.Exists(WireGuardExePath)) return false;
             if (!File.Exists(ConfigPath)) return false;
 
             string configText = await File.ReadAllTextAsync(ConfigPath);
 
-            // Resolve endpoint before we change anything.
             var epMatch    = Regex.Match(configText, @"Endpoint\s*=\s*([^\s]+)");
             string? epIp   = epMatch.Success ? ResolveEndpointIp(epMatch.Groups[1].Value) : null;
             string? gateway = GetDefaultGateway();
 
-            // Enforce /24 subnet mask on-link for Windows
             configText = Regex.Replace(configText, @"(Address\s*=\s*10\.77\.0\.\d+)/32", "$1/24");
 
-            // Enforce PersistentKeepalive = 10
             if (Regex.IsMatch(configText, @"PersistentKeepalive\s*=\s*\d+"))
-            {
                 configText = Regex.Replace(configText, @"PersistentKeepalive\s*=\s*\d+", "PersistentKeepalive = 10");
-            }
             else
-            {
                 configText = Regex.Replace(configText, @"(\[Peer\])", "$1\nPersistentKeepalive = 10");
-            }
 
             if (enable)
             {
-                // Switch to full-tunnel config.
-                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+",
-                    "AllowedIPs = 0.0.0.0/0, ::/0");
-
-                // Ensure DNS is added for full tunnel
+                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+", "AllowedIPs = 0.0.0.0/0, ::/0");
                 if (!Regex.IsMatch(configText, @"DNS\s*="))
-                {
                     configText = Regex.Replace(configText, @"(\[Interface\][\s\S]*?Address\s*=\s*[^\r\n]+)", "$1\nDNS = 1.1.1.1, 8.8.8.8");
-                }
             }
             else
             {
-                // Revert to split-tunnel (VPN subnet only).
-                configText = Regex.Replace(configText,
-                    @"AllowedIPs\s*=\s*[^\r\n]+",
-                    $"AllowedIPs = {VpnService.Subnet}");
-
-                // Remove DNS in split-tunnel mode
+                configText = Regex.Replace(configText, @"AllowedIPs\s*=\s*[^\r\n]+", $"AllowedIPs = {VpnService.Subnet}");
                 configText = Regex.Replace(configText, @"DNS\s*=\s*[^\r\n]+(\r?\n)?", "");
-
-                // Remove the exception route we added earlier.
-                if (epIp != null)
-                    RunProcess("route", $"delete {epIp}");
+                if (epIp != null) RunProcess("route", $"delete {epIp}");
             }
 
             await File.WriteAllTextAsync(ConfigPath, configText);
-
-            // Tear down.
             await DeactivateTunnelAsync();
 
-            // Add exception route BEFORE starting full-tunnel so we don't lose connectivity.
             if (enable && epIp != null && gateway != null)
             {
                 RunProcess("route", $"delete {epIp}");
                 RunProcess("route", $"add {epIp} MASK 255.255.255.255 {gateway} METRIC 1");
             }
 
-            // Bring back up.
             var (ok, _) = await InstallTunnelServiceAsync();
             return ok;
         }
