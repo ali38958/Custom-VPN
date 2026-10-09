@@ -1,1 +1,0 @@
-CreateObject("Shell.Application").ShellExecute "cmd.exe", "/c \"C:\Program Files\WireGuard\wireguard.exe\" /installtunnelservice \"C:\ProgramData\CustomVPN\CustomVPN.conf\" > \"C:\ProgramData\CustomVPN\wg_out.txt\" 2>&1", "", "runas", 1
