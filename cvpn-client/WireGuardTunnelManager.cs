@@ -192,25 +192,18 @@ namespace CustomVPN.Client
 
             log?.Invoke("Starting WireGuard Manager service...");
 
-            // If not installed, install it
-            if (!scOut.Contains("SERVICE_NAME"))
-            {
-                RunWireGuard("/installmanagerservice");
-                await Task.Delay(2000);
-            }
+            // /installmanagerservice is idempotent: installs AND starts it.
+            // Always call it — whether the service exists or not.
+            RunWireGuard("/installmanagerservice");
 
-            // Start it
-            RunProcess("sc", "start WireGuardManager");
-
-            // Wait up to 10s for it to reach RUNNING
-            for (int i = 0; i < 20; i++)
+            // Wait up to 15s for it to reach RUNNING
+            for (int i = 0; i < 30; i++)
             {
                 var (status, _) = RunProcess("sc", "query WireGuardManager");
                 if (status.Contains("RUNNING")) return true;
                 await Task.Delay(500);
             }
 
-            // Not strictly fatal — try to continue anyway
             log?.Invoke("Warning: WireGuard Manager did not reach RUNNING state.");
             return false;
         }
@@ -220,15 +213,12 @@ namespace CustomVPN.Client
         {
             log?.Invoke("Preparing WireGuard engine...");
 
-            // Kill any WireGuard GUI — it holds a lock on the service manager pipe.
-            foreach (var proc in Process.GetProcessesByName("WireGuard"))
-            {
-                try { proc.Kill(); proc.WaitForExit(2000); } catch { }
-            }
-            await Task.Delay(500);
+            // NOTE: Do NOT kill the WireGuard GUI process.
+            // Killing it causes Windows to unregister the Manager service (it owns it),
+            // which unloads wireguard.sys and breaks /installtunnelservice.
 
-            // CRITICAL: Start WireGuard Manager first so it loads wireguard.sys.
-            // Without the Manager running, /installtunnelservice hangs forever at "Creating network".
+            // CRITICAL: Ensure Manager service is running before installing tunnel.
+            // The Manager loads wireguard.sys into the kernel.
             await EnsureManagerServiceAsync(log);
             await Task.Delay(1000); // give driver a moment to fully initialize
 
