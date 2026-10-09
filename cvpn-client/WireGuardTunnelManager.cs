@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -14,9 +14,6 @@ namespace CustomVPN.Client
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             "WireGuard", "wireguard.exe");
 
-        // Checks BOTH the exe AND the wireguard-nt driver file are present.
-        // wireguard.exe can exist as a leftover from a corrupted/partial uninstall
-        // while wireguard.sys is gone — which causes Manager to get stuck in START_PENDING.
         public static bool IsWireGuardInstalled
         {
             get
@@ -35,8 +32,6 @@ namespace CustomVPN.Client
             "CustomVPN");
 
         public static string ConfigPath => Path.Combine(ConfigDir, $"{TunnelName}.conf");
-
-        // ─── Helpers ────────────────────────────────────────────────────────────
 
         private static (string stdout, int exitCode) RunProcess(string exe, string args)
         {
@@ -78,8 +73,6 @@ namespace CustomVPN.Client
             }
         }
 
-        // ─── WireGuard Install ───────────────────────────────────────────────────
-
         public static async Task<(bool Success, string ErrorMsg)> EnsureWireGuardInstalledAsync(
             Action<string>? statusCallback = null, bool force = false)
         {
@@ -118,8 +111,6 @@ namespace CustomVPN.Client
                 return (false, $"Download/Install error: {ex.Message}");
             }
         }
-
-        // ─── Tunnel Status ───────────────────────────────────────────────────────
 
         public static bool IsTunnelInstalled()
         {
@@ -168,8 +159,6 @@ namespace CustomVPN.Client
             catch { return false; }
         }
 
-        // ─── Routing helpers ─────────────────────────────────────────────────────
-
         private static string? GetDefaultGateway()
         {
             try
@@ -194,8 +183,6 @@ namespace CustomVPN.Client
             }
             catch { return null; }
         }
-
-        // ─── Tunnel Lifecycle ────────────────────────────────────────────────────
 
         private static async Task<bool> EnsureManagerServiceAsync(Action<string>? log = null)
         {
@@ -252,7 +239,12 @@ namespace CustomVPN.Client
 
                 var (sc2, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
                 var (wgLog, _) = RunProcess(WireGuardExePath, "/dumplog");
-                return (false, $"Tunnel service stuck in START_PENDING.\n{sc2.Trim()}\n\nWG Log:\n{wgLog}");
+                
+                try {
+                    File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CVPN_Error_Log.txt"), wgLog);
+                } catch {}
+
+                return (false, $"Tunnel service stuck in START_PENDING.\n{sc2.Trim()}\n\nSaved full log to Desktop\\CVPN_Error_Log.txt.");
             }
 
             for (int i = 0; i < 10; i++)
@@ -262,7 +254,11 @@ namespace CustomVPN.Client
             }
 
             var (wgLog2, _) = RunProcess(WireGuardExePath, "/dumplog");
-            return (false, $"Tunnel install failed (exit {exitCode}).\n{output.Trim()}\n\nWG Log:\n{wgLog2}");
+            try {
+                File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CVPN_Error_Log.txt"), wgLog2);
+            } catch {}
+
+            return (false, $"Tunnel install failed (exit {exitCode}).\n{output.Trim()}\n\nSaved full log to Desktop\\CVPN_Error_Log.txt.");
         }
 
         public static async Task DeactivateTunnelAsync()
@@ -277,8 +273,6 @@ namespace CustomVPN.Client
                 await Task.Delay(500);
             }
         }
-
-        // ─── Public API ──────────────────────────────────────────────────────────
 
         public static async Task<(bool Success, string ErrorMsg)> ActivateTunnelAsync(
             string configText,
