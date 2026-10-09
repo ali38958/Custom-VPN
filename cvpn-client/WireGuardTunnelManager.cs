@@ -41,39 +41,36 @@ namespace CustomVPN.Client
             return (output, p.ExitCode);
         }
 
-        /// <summary>
-        /// Run wireguard.exe directly, inheriting the current elevated token.
-        /// The app runs as Administrator, so no UAC re-elevation needed.
-        /// Using UseShellExecute=false allows us to actually WaitForExit.
-        /// </summary>
-        private static int RunWireGuard(string args)
+        private static (int exitCode, string output) RunWireGuard(string args)
         {
             var psi = new ProcessStartInfo(WireGuardExePath, args)
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                RedirectStandardOutput = false,
-                RedirectStandardError = false
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
             try
             {
                 using var p = Process.Start(psi);
-                if (p == null) return -1;
+                if (p == null) return (-1, "Process start failed");
+                string outStr = p.StandardOutput.ReadToEnd();
+                string errStr = p.StandardError.ReadToEnd();
                 p.WaitForExit(10000); // wait up to 10s
-                return p.ExitCode;
+                return (p.ExitCode, outStr + "\n" + errStr);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"RunWireGuard failed: {ex.Message}");
-                return -1;
+                return (-1, ex.Message);
             }
         }
 
         // ─── WireGuard Install ───────────────────────────────────────────────────
 
-        public static async Task<bool> EnsureWireGuardInstalledAsync(Action<string>? statusCallback = null)
+        public static async Task<(bool Success, string ErrorMsg)> EnsureWireGuardInstalledAsync(Action<string>? statusCallback = null)
         {
-            if (IsWireGuardInstalled) return true;
+            if (IsWireGuardInstalled) return (true, "");
 
             statusCallback?.Invoke("WireGuard engine not found. Downloading installer...");
             var tempInstaller = Path.Combine(Path.GetTempPath(), "wireguard-installer.exe");
@@ -85,19 +82,19 @@ namespace CustomVPN.Client
                 await File.WriteAllBytesAsync(tempInstaller, data);
 
                 statusCallback?.Invoke("Installing WireGuard (elevation required)...");
-                RunProcess(tempInstaller, "/S");
+                var (stdout, exitCode) = RunProcess(tempInstaller, "/S");
 
                 for (int i = 0; i < 15; i++)
                 {
-                    if (IsWireGuardInstalled) return true;
+                    if (IsWireGuardInstalled) return (true, "");
                     await Task.Delay(1000);
                 }
-                return IsWireGuardInstalled;
+                return (false, $"Installer exited with code {exitCode}. Output: {stdout}");
             }
             catch (Exception ex)
             {
                 statusCallback?.Invoke($"Auto-install failed: {ex.Message}");
-                return false;
+                return (false, $"Download/Install error: {ex.Message}");
             }
         }
 
@@ -187,7 +184,7 @@ namespace CustomVPN.Client
         // ─── Tunnel Lifecycle ────────────────────────────────────────────────────
 
         /// <summary>Install and start the WireGuard tunnel service. Waits until running.</summary>
-        private static async Task<bool> InstallTunnelServiceAsync(Action<string>? log = null)
+        private static async Task<(bool Success, string ErrorMsg)> InstallTunnelServiceAsync(Action<string>? log = null)
         {
             log?.Invoke("Preparing WireGuard engine...");
 
@@ -201,21 +198,21 @@ namespace CustomVPN.Client
             log?.Invoke("Installing WireGuard tunnel service...");
 
             // App runs as Administrator — inherit the token directly, wait for real exit.
-            int exitCode = RunWireGuard($"/installtunnelservice \"{ConfigPath}\"");
+            var (exitCode, output) = RunWireGuard($"/installtunnelservice \"{ConfigPath}\"");
 
             // Exit code 0 = service registered successfully. The tunnel is live.
             // WireGuard GUI won't show it (it uses its own IPC channel) but the adapter works.
-            if (exitCode == 0) return true;
+            if (exitCode == 0) return (true, "");
 
             // Fallback: maybe SCM is just slow. Poll briefly.
             for (int i = 0; i < 10; i++)
             {
-                if (IsTunnelRunning()) return true;
+                if (IsTunnelRunning()) return (true, "");
                 await Task.Delay(500);
             }
 
             log?.Invoke($"Tunnel service install failed (exit code {exitCode}).");
-            return false;
+            return (false, $"Exit code {exitCode}. Output: {output}");
         }
 
         /// <summary>Stop and uninstall the WireGuard tunnel service. Waits until gone.</summary>
@@ -241,13 +238,14 @@ namespace CustomVPN.Client
         /// /32 static route for the VPN server so the tunnel packets themselves
         /// don't loop back into the tunnel.
         /// </summary>
-        public static async Task<bool> ActivateTunnelAsync(
+        public static async Task<(bool Success, string ErrorMsg)> ActivateTunnelAsync(
             string configText,
             bool routeAllTraffic,
             Action<string>? logCallback = null)
         {
-            if (!await EnsureWireGuardInstalledAsync(logCallback))
-                return false;
+            var (instOk, instErr) = await EnsureWireGuardInstalledAsync(logCallback);
+            if (!instOk)
+                return (false, $"WireGuard is not installed: {instErr}");
 
             logCallback?.Invoke("Writing WireGuard profile...");
             Directory.CreateDirectory(ConfigDir);
@@ -306,20 +304,21 @@ namespace CustomVPN.Client
                 }
             }
 
-            bool started = await InstallTunnelServiceAsync(logCallback);
-            if (!started) return false;
+            var (started, err) = await InstallTunnelServiceAsync(logCallback);
+            if (!started) return (false, $"Service fail: {err}");
 
             // Verify connectivity.
             logCallback?.Invoke("Verifying VPN connectivity...");
             for (int i = 0; i < 10; i++)
             {
-                if (CanPingServer()) return true;
+                if (CanPingServer()) return (true, "");
                 await Task.Delay(500);
             }
 
             // Service is running but ping failed — still usable.
             logCallback?.Invoke("Tunnel up (ping timed out — may be server firewall).");
-            return IsTunnelRunning();
+            bool running = IsTunnelRunning();
+            return (running, running ? "" : "Adapter failed to start properly after installation.");
         }
 
         /// <summary>
@@ -392,7 +391,8 @@ namespace CustomVPN.Client
             }
 
             // Bring back up.
-            return await InstallTunnelServiceAsync();
+            var (ok, _) = await InstallTunnelServiceAsync();
+            return ok;
         }
     }
 }

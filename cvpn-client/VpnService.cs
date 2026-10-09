@@ -97,7 +97,7 @@ namespace CustomVPN.Client
                     statusCallback?.Invoke("Activating virtual router network adapter...");
 
                     // Activate the actual WireGuard tunnel adapter on Windows
-                    bool tunnelOk = await WireGuardTunnelManager.ActivateTunnelAsync(
+                    var (tunnelOk, tunnelErr) = await WireGuardTunnelManager.ActivateTunnelAsync(
                         configText,
                         RouteAllTraffic,
                         statusCallback
@@ -121,7 +121,7 @@ namespace CustomVPN.Client
                     }
 
                     IsConnected = tunnelOk;
-                    return (tunnelOk, tunnelOk ? "Connected to WireGuard virtual router!" : "Authenticated, but WireGuard adapter creation failed.", AssignedIp);
+                    return (tunnelOk, tunnelOk ? "Connected to WireGuard virtual router!" : $"Adapter creation failed:\n{tunnelErr}", AssignedIp);
                 }
                 else
                 {
@@ -213,7 +213,7 @@ namespace CustomVPN.Client
                 ServerUrl = root.GetProperty("Url").GetString() ?? "https://resolvia.cc.cd";
 
                 statusCallback?.Invoke("Restoring VPN session...");
-                bool tunnelOk = await WireGuardTunnelManager.ActivateTunnelAsync(
+                var (tunnelOk, _) = await WireGuardTunnelManager.ActivateTunnelAsync(
                     OpenVpnConfigText,
                     RouteAllTraffic,
                     statusCallback
