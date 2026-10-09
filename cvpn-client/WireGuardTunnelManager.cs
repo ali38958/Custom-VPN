@@ -318,7 +318,11 @@ namespace CustomVPN.Client
             // Service is running but ping failed — still usable.
             logCallback?.Invoke("Tunnel up (ping timed out — may be server firewall).");
             bool running = IsTunnelRunning();
-            return (running, running ? "" : "Adapter failed to start properly after installation.");
+            if (running) return (true, "");
+            
+            var (scOutput, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
+            var (eventLog, _) = RunProcess("powershell", $"-NoProfile -Command \"Get-WinEvent -LogName System -MaxEvents 5 -ErrorAction SilentlyContinue | Where-Object {{ $_.Message -like '*WireGuard Tunnel: {TunnelName}*' }} | Select-Object -ExpandProperty Message\"");
+            return (false, $"Adapter failed to start.\nService status:\n{scOutput.Trim()}\nEvent Log:\n{eventLog.Trim()}");
         }
 
         /// <summary>
