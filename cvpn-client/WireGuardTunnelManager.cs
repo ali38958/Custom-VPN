@@ -183,6 +183,38 @@ namespace CustomVPN.Client
 
         // ─── Tunnel Lifecycle ────────────────────────────────────────────────────
 
+        /// <summary>Ensures the WireGuard Manager service is running (it loads wireguard.sys).</summary>
+        private static async Task<bool> EnsureManagerServiceAsync(Action<string>? log = null)
+        {
+            // Check if already running
+            var (scOut, _) = RunProcess("sc", "query WireGuardManager");
+            if (scOut.Contains("RUNNING")) return true;
+
+            log?.Invoke("Starting WireGuard Manager service...");
+
+            // If not installed, install it
+            if (!scOut.Contains("SERVICE_NAME"))
+            {
+                RunWireGuard("/installmanagerservice");
+                await Task.Delay(2000);
+            }
+
+            // Start it
+            RunProcess("sc", "start WireGuardManager");
+
+            // Wait up to 10s for it to reach RUNNING
+            for (int i = 0; i < 20; i++)
+            {
+                var (status, _) = RunProcess("sc", "query WireGuardManager");
+                if (status.Contains("RUNNING")) return true;
+                await Task.Delay(500);
+            }
+
+            // Not strictly fatal — try to continue anyway
+            log?.Invoke("Warning: WireGuard Manager did not reach RUNNING state.");
+            return false;
+        }
+
         /// <summary>Install and start the WireGuard tunnel service. Waits until running.</summary>
         private static async Task<(bool Success, string ErrorMsg)> InstallTunnelServiceAsync(Action<string>? log = null)
         {
@@ -195,14 +227,29 @@ namespace CustomVPN.Client
             }
             await Task.Delay(500);
 
+            // CRITICAL: Start WireGuard Manager first so it loads wireguard.sys.
+            // Without the Manager running, /installtunnelservice hangs forever at "Creating network".
+            await EnsureManagerServiceAsync(log);
+            await Task.Delay(1000); // give driver a moment to fully initialize
+
             log?.Invoke("Installing WireGuard tunnel service...");
 
             // App runs as Administrator — inherit the token directly, wait for real exit.
             var (exitCode, output) = RunWireGuard($"/installtunnelservice \"{ConfigPath}\"");
 
-            // Exit code 0 = service registered successfully. The tunnel is live.
-            // WireGuard GUI won't show it (it uses its own IPC channel) but the adapter works.
-            if (exitCode == 0) return (true, "");
+            // Exit code 0 = service registered successfully.
+            if (exitCode == 0)
+            {
+                // Poll until RUNNING (not just START_PENDING)
+                for (int i = 0; i < 20; i++)
+                {
+                    if (IsTunnelRunning()) return (true, "");
+                    await Task.Delay(500);
+                }
+                // Still START_PENDING — something hung
+                var (sc2, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
+                return (false, $"Service installed but stuck in START_PENDING.\n{sc2}");
+            }
 
             // Fallback: maybe SCM is just slow. Poll briefly.
             for (int i = 0; i < 10; i++)
