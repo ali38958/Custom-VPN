@@ -322,7 +322,22 @@ namespace CustomVPN.Client
             
             var (scOutput, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
             var (eventLog, _) = RunProcess("powershell", $"-NoProfile -Command \"Get-WinEvent -LogName System -MaxEvents 5 -ErrorAction SilentlyContinue | Where-Object {{ $_.Message -like '*WireGuard Tunnel: {TunnelName}*' }} | Select-Object -ExpandProperty Message\"");
-            return (false, $"Adapter failed to start.\nService status:\n{scOutput.Trim()}\nEvent Log:\n{eventLog.Trim()}");
+            
+            string wgLog = "Failed to dump wg log";
+            try 
+            {
+                var psi = new ProcessStartInfo { FileName = "C:\\Program Files\\WireGuard\\wireguard.exe", Arguments = "/dumplog", RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true };
+                using var p = Process.Start(psi);
+                if (p != null) {
+                    wgLog = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(3000);
+                    
+                    var lines = wgLog.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    wgLog = string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 15)));
+                }
+            } catch { }
+
+            return (false, $"Adapter failed to start.\nSC Status:\n{scOutput.Trim()}\nWG Log:\n{wgLog}\nEvent Log:\n{eventLog.Trim()}");
         }
 
         /// <summary>
