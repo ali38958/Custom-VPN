@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -9,7 +9,7 @@ namespace CustomVPN.Client
 {
     public class WireGuardTunnelManager
     {
-        public static string TunnelName = "CustomVPN";
+        public static string TunnelName = "CVPN";
         public static string WireGuardExePath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             "WireGuard", "wireguard.exe");
@@ -251,7 +251,8 @@ namespace CustomVPN.Client
                 }
 
                 var (sc2, _) = RunProcess("sc", $"query \"WireGuardTunnel${TunnelName}\"");
-                return (false, $"Tunnel service stuck in START_PENDING.\n{sc2.Trim()}");
+                var (wgLog, _) = RunProcess(WireGuardExePath, "/dumplog");
+                return (false, $"Tunnel service stuck in START_PENDING.\n{sc2.Trim()}\n\nWG Log:\n{wgLog}");
             }
 
             for (int i = 0; i < 10; i++)
@@ -260,7 +261,8 @@ namespace CustomVPN.Client
                 await Task.Delay(500);
             }
 
-            return (false, $"Tunnel install failed (exit {exitCode}).\n{output.Trim()}");
+            var (wgLog2, _) = RunProcess(WireGuardExePath, "/dumplog");
+            return (false, $"Tunnel install failed (exit {exitCode}).\n{output.Trim()}\n\nWG Log:\n{wgLog2}");
         }
 
         public static async Task DeactivateTunnelAsync()
